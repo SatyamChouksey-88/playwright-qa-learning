@@ -5,11 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Playwright + TypeScript — Study Material</title>
 <meta name="description" content="Playwright + TypeScript interview &amp; portfolio guide: locators, fixtures↔POM, ARIA snapshots, Clock, WebAuthn, Agents/MCP governance, API/CI, Bank Demo path, 117-scenario bank + essentials, quiz. Opens from file:// with zero install." />
+<meta property="og:title" content="Playwright + TypeScript — Study Material" />
+<meta property="og:description" content="Interview + portfolio Playwright curriculum. Zero-install file:// site with Bank Demo, Agents/MCP, and FSRS review." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://satyamchouksey-88.github.io/playwright-qa-learning/learning-site/" />
+<meta name="twitter:card" content="summary" />
+<meta name="author" content="Satyam Chouksey" />
+<link rel="manifest" href="manifest.webmanifest" />
 <link rel="stylesheet" href="styles.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>" />
 </head>
 <body>
-
+<a class="skip-link" href="#content">Skip to content</a>
 <header class="topbar">
   <button class="iconbtn menubtn" id="menuBtn" aria-label="Toggle menu">☰</button>
   <div class="brand">
@@ -24,7 +31,7 @@
 
 <div class="shell">
   <!-- ============ SIDEBAR ============ -->
-  <nav class="sidebar" id="sidebar">
+  <nav class="sidebar" id="sidebar" aria-label="Curriculum">
     <h4>Getting started</h4>
     <a class="navlink" data-target="home">Overview</a>
     <a class="navlink" data-target="roadmap">Learning roadmap</a>
@@ -82,6 +89,7 @@
     <a class="navlink" data-target="interview-tier-c">Tier C Senior</a>
     <a class="navlink" data-target="interview-tier-d">Tier D Architect</a>
     <a class="navlink" data-target="drill">Random drill</a>
+    <a class="navlink" data-target="fsrs">FSRS review</a>
     <a class="navlink" data-target="quiz">Quiz (30 Q)</a>
     <a class="navlink" data-target="resources">Resources</a>
   </nav>
@@ -2468,9 +2476,9 @@ npx playwright install --with-deps</code></pre>
   <!-- ---------------- BANK DEMO ---------------- -->
   <section class="page hidden" id="bank-demo">
     <h2 class="sec">Bank Demo — Apex Trust (E2E)</h2>
-    <p class="lead">Full multi-page banking workflow on this site: login / 2FA, dashboard, transfers + beneficiaries + wire OTP, loan EMI + applications, cards, support tickets, settings. Pair with <a href="#assessments">Assessments</a>.</p>
+    <p class="lead">Full multi-page banking workflow on this site: login / 2FA with <strong>60s OTP TTL</strong> (Clock-friendly), locked/glitch personas, mockable balance API hooks, passkey path, transfers + wire OTP, loans, cards, support, settings. Pair with <a href="#assessments">Assessments</a> and the <code class="inline">@bank-demo</code> practice-suite project.</p>
     <div class="card note" style="margin-bottom:14px">
-      <strong>Credentials:</strong> <code class="inline">apex_user</code> / <code class="inline">Password123!</code> · 2FA: <code class="inline">apex_2fa</code> / <code class="inline">Password2FA!</code> (OTP <code class="inline">123456</code>)
+      <strong>Credentials:</strong> <code class="inline">apex_user</code> / <code class="inline">Password123!</code> · 2FA: <code class="inline">apex_2fa</code> / <code class="inline">Password2FA!</code> (OTP <code class="inline">123456</code>) · Locked: <code class="inline">apex_locked</code> · Glitch: <code class="inline">apex_glitch</code>
     </div>
     <div id="bankDemoHost"></div>
     <details class="solution-reveal" style="margin-top:16px">
@@ -2675,6 +2683,29 @@ npx playwright install --with-deps</code></pre>
     <div id="quizDone" class="card good hidden"></div>
   </section>
 
+  <!-- ---------------- FSRS ---------------- -->
+  <section class="page hidden" id="fsrs">
+    <h2 class="sec">FSRS-6 review</h2>
+    <p class="lead">Spaced repetition over a curated deck (interview + essentials). Algorithm: vendored <code class="inline">ts-fsrs</code> (FSRS-6). State lives in <strong>IndexedDB</strong> — export JSON periodically (Safari may evict idle origins).</p>
+    <div class="card note">Due now: <strong data-fsrs-due>0</strong> · Grades map to Again / Hard / Good / Easy. Pair cards with Bank Demo drills — flashcards alone do not build automation skill.</div>
+    <div id="fsrsHost" class="card">
+      <h3 class="sub" data-fsrs-title style="margin-top:0">Loading…</h3>
+      <p class="lead" data-fsrs-meta></p>
+      <p class="pw-hint" data-fsrs-empty hidden>Queue empty.</p>
+      <div class="pillrow" data-fsrs-grades>
+        <button type="button" class="pw-btn" data-fsrs-grade="Again">Again</button>
+        <button type="button" class="pw-btn" data-fsrs-grade="Hard">Hard</button>
+        <button type="button" class="pw-btn" data-fsrs-grade="Good">Good</button>
+        <button type="button" class="pw-btn" data-fsrs-grade="Easy">Easy</button>
+        <button type="button" class="pw-btn ghost" data-fsrs-open>Open topic</button>
+      </div>
+      <div class="pillrow" style="margin-top:12px">
+        <button type="button" class="iconbtn" data-fsrs-export>Export JSON</button>
+        <label class="iconbtn">Import <input type="file" accept="application/json" data-fsrs-import hidden /></label>
+      </div>
+    </div>
+  </section>
+
   <!-- ---------------- RESOURCES ---------------- -->
   <section class="page hidden" id="resources">
     <h2 class="sec">Resources</h2>
@@ -2728,8 +2759,11 @@ npx playwright install --with-deps</code></pre>
     </div>
 
     <div class="footer">
-      Built as offline study material for Playwright + TypeScript. Curriculum targets **@playwright/test ~1.49–1.62**; always check the release notes for the newest additions.
-      <div class="kbd-help">Shortcuts: <span class="kbd">/</span> search · <span class="kbd">Esc</span> clear · <span class="kbd">?</span> help</div>
+      Built by <strong>Satyam Chouksey</strong>
+      (<a href="https://github.com/SatyamChouksey-88/playwright-qa-learning">SatyamChouksey-88/playwright-qa-learning</a>)
+      as offline Playwright + TypeScript study material.
+      Targets <strong>@playwright/test ~1.49–1.62</strong>. MIT licensed. Search: MiniSearch · Review: ts-fsrs.
+      <div class="kbd-help">Shortcuts: <span class="kbd">/</span> or <span class="kbd">Ctrl/⌘ K</span> search · <span class="kbd">Esc</span> clear · <span class="kbd">?</span> help</div>
     </div>
   </section>
 
@@ -2752,23 +2786,26 @@ npx playwright install --with-deps</code></pre>
   </form>
 </dialog>
 
-<script src="vendor/minisearch.js"></script>
-<script src="search-index.js"></script>
-<script src="quiz-data.js"></script>
-<script src="interview-data.js"></script>
-<script src="interview-essentials-data.js"></script>
-<script src="playground-data.js"></script>
-<script src="miniapps-data.js"></script>
-<script src="section-mcq-data.js"></script>
-<script src="xpath-data.js"></script>
-<script src="xpath-widgets.js"></script>
-<script src="mistakes-data.js"></script>
-<script src="skills-practice-data.js"></script>
-<script src="skills-practice-widgets.js"></script>
-<script src="assessments-data.js"></script>
-<script src="practice-widgets.js"></script>
-<script src="hub-widgets.js"></script>
-<script src="bank-demo.js"></script>
-<script src="app.js"></script>
+<script src="vendor/minisearch.js" defer></script>
+<script src="vendor/ts-fsrs.js" defer></script>
+<script src="search-index.js" defer></script>
+<script src="storage.js" defer></script>
+<script src="quiz-data.js" defer></script>
+<script src="interview-data.js" defer></script>
+<script src="interview-essentials-data.js" defer></script>
+<script src="playground-data.js" defer></script>
+<script src="miniapps-data.js" defer></script>
+<script src="section-mcq-data.js" defer></script>
+<script src="xpath-data.js" defer></script>
+<script src="xpath-widgets.js" defer></script>
+<script src="mistakes-data.js" defer></script>
+<script src="skills-practice-data.js" defer></script>
+<script src="skills-practice-widgets.js" defer></script>
+<script src="assessments-data.js" defer></script>
+<script src="practice-widgets.js" defer></script>
+<script src="hub-widgets.js" defer></script>
+<script src="bank-demo.js" defer></script>
+<script src="fsrs-app.js" defer></script>
+<script src="app.js" defer></script>
 </body>
 </html>

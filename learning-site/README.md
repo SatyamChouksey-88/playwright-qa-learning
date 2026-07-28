@@ -51,4 +51,4 @@ See `docs/adr/0001-search-minisearch.md` and `docs/adr/0002-interview-md-ssot.md
 
 ## License
 
-See monorepo root (MIT planned in Phase 1 foundations).
+See monorepo root [`LICENSE`](../LICENSE) (MIT).

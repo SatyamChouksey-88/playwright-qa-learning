@@ -1,0 +1,17 @@
+{
+  "name": "Playwright QA Learning",
+  "short_name": "PW Learn",
+  "description": "Playwright + TypeScript interview and portfolio study guide",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f1419",
+  "theme_color": "#3d8bfd",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

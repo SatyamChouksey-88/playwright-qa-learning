@@ -40,14 +40,17 @@ const STUDY_ITEMS = [
   { id: 'assessments', label: 'Assessments workbook' },
   { id: 'interview', label: 'Interview hub (start Tier A)' },
   { id: 'interview-essentials', label: 'Interview essentials (HR / QA / BDD / Git)' },
+  { id: 'fsrs', label: 'FSRS-6 spaced review' },
   { id: 'quiz', label: 'Finish the quiz (≥80%)' },
 ];
 
 function loadSet(key) {
+  if (window.PWStorage?.loadSet) return window.PWStorage.loadSet(key);
   try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); }
   catch { return new Set(); }
 }
 function saveSet(key, set) {
+  if (window.PWStorage?.saveSet) return window.PWStorage.saveSet(key, set);
   localStorage.setItem(key, JSON.stringify([...set]));
 }
 
@@ -971,7 +974,7 @@ if (document.getElementById(initial)?.classList.contains('page')) {
 
 /* ---------------- Theme ---------------- */
 const themeBtn = document.getElementById('themeBtn');
-const saved = localStorage.getItem('pw-theme');
+const saved = window.PWStorage?.getTheme?.() || localStorage.getItem('pw-theme');
 if (saved) document.documentElement.dataset.theme = saved;
 
 function paintThemeButton() {
@@ -985,7 +988,8 @@ paintThemeButton();
 themeBtn.addEventListener('click', () => {
   const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
   document.documentElement.dataset.theme = next;
-  localStorage.setItem('pw-theme', next);
+  if (window.PWStorage?.setTheme) window.PWStorage.setTheme(next);
+  else localStorage.setItem('pw-theme', next);
   paintThemeButton();
 });
 
@@ -1570,7 +1574,7 @@ function isEditableTarget(target) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === '/' && !isEditableTarget(e.target)) {
+  if ((e.key === '/' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) && !isEditableTarget(e.target)) {
     e.preventDefault(); searchInput.focus();
   }
   if (e.key === 'Escape') {
@@ -1582,6 +1586,17 @@ document.addEventListener('keydown', e => {
     helpDialog?.showModal();
   }
 });
+
+window.showSection = show;
+
+/* HTTPS-only service worker (never file://) */
+if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+}
+
+window.FSRSApp?.mount?.(document.getElementById('fsrsHost'));
 
 /* ---------------- Back to top ---------------- */
 const backTop = document.getElementById('backToTop');

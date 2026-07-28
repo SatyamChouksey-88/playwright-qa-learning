@@ -677,3 +677,9 @@ summary:focus-visible,
     transition-duration:.001ms !important;
   }
 }
+.skip-link{position:absolute;left:-999px;top:8px;background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;z-index:10000}
+.skip-link:focus{left:8px}
+
+.skip-link{position:absolute;left:-999px;top:8px;background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;z-index:10000}
+.skip-link:focus{left:8px}
+
