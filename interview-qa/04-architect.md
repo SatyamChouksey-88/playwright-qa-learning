@@ -176,3 +176,20 @@ Platform economics, migration, governance, and org-scale decisions for 9+ years.
 ### D40. You must cut the interview bank to a “QA 75” curated core for a two-week prep sprint. How do you choose what stays?
 **Ideal approach:** Keep forcing-function scenarios: flake triage, locator priority, storageState, hybrid API+UI, sharding economics, and agent governance (D10/D36). Drop duplicate mechanism questions and trivia. Pair each kept card with a **runnable drill** (Bank Demo, lab, or mini-app) — Dunlosky: retrieval + spacing beat rereading. Publish the cut list so candidates know the contract.
 **Why they get stuck:** They trim randomly by tier letter, or keep only syntax questions that don’t transfer to on-the-job judgment.
+### D41. Leadership asks for DORA metrics and a flake budget. What do you report and target?
+**Ideal approach:** Deployment frequency, lead time for changes, change-failure rate, MTTR — plus defect escape rate (often target &lt;5%, zero critical) and flakiness rate (often &lt;1%). Pair with which critical journeys are covered. Pass rate alone is insufficient.
+**Why they get stuck:** They only quote “5,000 tests, 98% pass.”
+
+### D42. How do you evaluate self-healing tests for silent intent-drift?
+**Ideal approach:** Healed tests can pass while asserting the wrong thing — trading visible failures for invisible ones. Demand audit trails, false-heal rates, human review of locator/assertion changes, and bake-offs on known-broken vs flaky suites. Prefer governance over “always heal.”
+**Why they get stuck:** They equate green-after-heal with fixed.
+
+### D43. How would you evaluate an AI browser-agent / computer-use model for production QA assistance?
+**Ideal approach:** Beyond happy-path benchmarks (WebArena), measure recovery-rate-per-failure-mode: DOM drift, screenshot ambiguity, login-state loss, modals, rate limits, irreversibility. Separate product E2E gates from agent eval harnesses; watch token cost in CI.
+**Why they get stuck:** They cite task-completion % only and ignore recovery and cost governance.
+
+### D44. After reading the CrowdStrike or Knight Capital postmortems, what testing/process control would you require before a high-blast-radius config/deploy ships?
+**Ideal approach:** Staged/canary rollout, tested deploy scripts (not only app binaries), schema/contract validation that cannot be skipped by wildcards, and production synthetics on critical paths. Tie to blast radius and rollback drills — not more UI clicks alone.
+**Why they get stuck:** They answer with “add more unit tests” without process or rollout controls.
+
+---

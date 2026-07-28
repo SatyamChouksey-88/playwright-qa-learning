@@ -138,3 +138,20 @@ Fixtures, auth, mocking, CI, and reliability scenarios for 2–5 years. Panels p
 **Why they get stuck:** They either maintain two entirely separate, drifting test suites (double the maintenance) or only test whichever version the CI test accounts happen to have gotten, silently losing coverage of the other.
 
 ---
+### B31. How do you design test cases for an age field that accepts 18–65?
+**Ideal approach:** Use equivalence partitioning (invalid below 18, valid 18–65, invalid above 65) plus boundary-value analysis at 17/18/19 and 64/65/66. Automate the critical boundaries in API/unit where cheap; keep a thin UI check for the user-visible error message. Do not invent dozens of mid-range E2E paths.
+**Why they get stuck:** They only list happy-path ages (30, 40) or explode into combinatorial UI cases without naming EP/BVA.
+
+### B32. Playwright pierces open shadow roots automatically. What breaks with a closed shadow root, and what is `css:light` for?
+**Ideal approach:** Closed shadow roots cannot be pierced — you need a public API, test IDs on the host, or slots that surface content to light DOM. `css:light` restricts matching to light DOM only when you must avoid piercing open roots. Interview signal: know the limit, not just “Playwright handles shadow DOM.”
+**Why they get stuck:** They claim all shadow DOM is auto-pierced, then fail a closed-root follow-up.
+
+### B33. When would you use Appium (or Maestro/Detox) instead of Playwright for “mobile”?
+**Ideal approach:** Playwright covers mobile-*web* emulation (viewport, user-agent, touch). Native and hybrid apps need Appium/Maestro/Detox with context switching for webviews. Saying “Playwright does mobile” without that distinction is a classic gotcha.
+**Why they get stuck:** They conflate device emulation with native automation.
+
+### B34. How do worker-scoped fixtures differ from test-scoped ones, and what is `mergeTests` for?
+**Ideal approach:** Worker-scoped fixtures set up once per worker process (expensive shared resources); test-scoped run per test. `mergeTests` composes fixture sets from different modules without hand-rolling a mega-fixture file. Prefer worker scope only when isolation still holds.
+**Why they get stuck:** They put mutable shared DB state in a worker fixture and cause parallel flakes.
+
+---

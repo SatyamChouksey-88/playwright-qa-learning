@@ -2123,12 +2123,14 @@ CMD ["npx", "playwright", "test"]</code></pre>
       <tr><td><code class="inline">locator.drop()</code></td><td><strong>1.60</strong></td><td><a href="#actions">Actions</a></td></tr>
       <tr><td>Component testing stories / <code class="inline">mount()</code></td><td><strong>1.62</strong></td><td><a href="#component-testing">Component testing</a> (experimental)</td></tr>
       <tr><td><code class="inline">tracing.startHar()</code> / <code class="inline">test.abort()</code> / <code class="inline">retryStrategy: 'isolated'</code></td><td><strong>1.60–1.62</strong></td><td><a href="#debug">Debug</a> / <a href="#config">Config</a></td></tr>
+      <tr><td>HTML report Speedboard / Timeline</td><td><strong>1.58+</strong> (verify changelog)</td><td><a href="#currency-2026">Currency preview</a> — suite perf, not only pass/fail</td></tr>
     </table>
 
     <h3 class="sub">Tooling</h3>
     <ul class="tight">
       <li><strong>UI Mode</strong> (<code class="inline">--ui</code>): time-travel, watch, pick locator, filter by <code class="inline">@tag</code>; in-app search via Cmd/Ctrl+F since <strong>1.60</strong>.</li>
-      <li><strong>Trace Viewer</strong> / <code class="inline">npx playwright trace</code>: actions, filmstrip, network, console. <code class="inline">trace.playwright.dev</code> loads traces <em>entirely in-browser</em> — safe to share in a portfolio.</li>
+      <li><strong>Trace Viewer</strong> / <code class="inline">npx playwright trace</code>: actions, filmstrip, network, console. <code class="inline">trace.playwright.dev</code> loads traces <em>entirely in-browser</em> — practice in the <a href="#trace-lab">Trace diagnosis lab</a>.</li>
+      <li><strong>SDET breadth &amp; labs</strong> (sidebar): test design, Pact, Appium comparison, STAR builder, mock interview, postmortems — see gap modules after FSRS.</li>
     </ul>
   </section>
 
@@ -2806,6 +2808,9 @@ npx playwright install --with-deps</code></pre>
 <script src="hub-widgets.js" defer></script>
 <script src="bank-demo.js" defer></script>
 <script src="fsrs-app.js" defer></script>
+<script src="gap-pages-data.js" defer></script>
+<script src="gap-practice-data.js" defer></script>
+<script src="gap-practice.js" defer></script>
 <script src="app.js" defer></script>
 </body>
 </html>

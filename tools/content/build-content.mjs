@@ -119,6 +119,7 @@ function collectSearchDocuments(interviewData) {
     ['xpath-data.js', 'XPATH_DATA', 'xpath'],
     ['playground-data.js', 'PLAYGROUND_DATA', 'playground'],
     ['miniapps-data.js', 'MINIAPPS_DATA', 'miniapps'],
+    ['gap-pages-data.js', 'GAP_PAGES', 'gap'],
   ];
 
   for (const [file, globalName, kind] of extras) {
@@ -256,6 +257,88 @@ function collectSearchDocuments(interviewData) {
           body: q.a || '',
         });
       });
+    } else if (globalName === 'GAP_PAGES') {
+      const list = Array.isArray(data) ? data : [];
+      for (const p of list) {
+        docs.push({
+          id: `gap:${p.id}`,
+          kind,
+          target: p.id,
+          title: p.title || p.nav || p.id,
+          nav: p.nav || p.title || p.id,
+          body: stripHtml(p.html || p.lead || '').slice(0, 4000),
+        });
+      }
+    }
+  }
+
+  // Index remaining gap practice globals (same file, multiple window.* assignments).
+  {
+    const full = path.join(ROOT, 'learning-site', 'gap-practice-data.js');
+    if (fs.existsSync(full)) {
+      const ctx = { window: {}, console };
+      // eslint-disable-next-line no-new-func
+      const run = new Function(
+        'window',
+        'console',
+        readText(full) +
+          '\nreturn { ap: window.GAP_ANTIPATTERNS, star: window.GAP_STAR_PROMPTS, mock: window.GAP_MOCK_QUESTIONS, pm: window.GAP_POSTMORTEMS, tr: window.GAP_TRACE_CHECKLIST };',
+      );
+      try {
+        const g = run(ctx.window, console);
+        (g.ap || []).forEach((a, i) => {
+          docs.push({
+            id: `gap-ap:${a.id || i}`,
+            kind: 'gap-practice',
+            target: 'antipattern-lab',
+            title: a.title || `Antipattern ${i + 1}`,
+            nav: 'Spot the antipattern',
+            body: `${a.bad || ''} ${a.fix || ''} ${a.explain || ''} ${(a.issues || []).join(' ')}`,
+          });
+        });
+        (g.star || []).forEach((s) => {
+          docs.push({
+            id: `gap-star:${s.id}`,
+            kind: 'gap-practice',
+            target: 'star-builder',
+            title: s.q,
+            nav: 'STAR builder',
+            body: s.q,
+          });
+        });
+        (g.mock || []).forEach((m, i) => {
+          docs.push({
+            id: `gap-mock:${i}`,
+            kind: 'gap-practice',
+            target: 'mock-interview',
+            title: m.q,
+            nav: 'Mock interview',
+            body: `${(m.followUps || []).join(' ')} ${Object.values(m.rubric || {}).join(' ')}`,
+          });
+        });
+        (g.pm || []).forEach((p) => {
+          docs.push({
+            id: `gap-pm:${p.id}`,
+            kind: 'gap-practice',
+            target: 'postmortems',
+            title: p.title,
+            nav: 'Postmortems',
+            body: `${p.blurb || ''} ${p.prompt || ''}`,
+          });
+        });
+        (g.tr || []).forEach((t) => {
+          docs.push({
+            id: `gap-trace:${t.id}`,
+            kind: 'gap-practice',
+            target: 'trace-lab',
+            title: t.text,
+            nav: 'Trace lab',
+            body: t.text,
+          });
+        });
+      } catch (err) {
+        console.warn(`  skip gap-practice extras: ${err.message}`);
+      }
     }
   }
 

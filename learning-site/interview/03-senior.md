@@ -126,3 +126,24 @@ Architecture, flake governance, hybrid design, and trade-off reasoning for 5–9
 **Why they get stuck:** They debug from the browser inward (checking selectors, checking the click) on a failure that has nothing to do with the UI, burning time before ever looking at the actual failing service.
 
 ---
+### C28. Design a Playwright test where an admin and a customer interact in the same scenario (e.g., support chat).
+**Ideal approach:** Two `browser.newContext()` instances (or two storageStates) with independent pages; never share cookies. Coordinate via API seeds or UI assertions on each side. Handle popups with `waitForEvent('popup')` when OAuth/help opens a tab. This is a top Mid→Senior discriminator.
+**Why they get stuck:** They reuse one context/page and “log out / log in,” destroying isolation and creating races.
+
+### C29. How do you mock or assert WebSocket traffic in Playwright for live balance updates?
+**Ideal approach:** Register `page.routeWebSocket()` / listeners *before* `goto`. Mock frames or observe real ones; assert the UI end state, not every wire frame. Know close codes (1000 vs 1006). Prefer UI contracts for Bank Demo notifications.
+**Why they get stuck:** They attach listeners after navigation and miss the handshake, or over-assert protocol trivia.
+
+### C30. How would you capture Core Web Vitals in a Playwright check, and what caveats do you mention?
+**Ideal approach:** Inject `PerformanceObserver` (LCP/CLS/INP) in Chromium; note CWV APIs are Chromium-centric, single runs are noisy (median of 3–5), and CI budgets beat vanity screenshots. Optional: playwright-lighthouse / CDP throttling.
+**Why they get stuck:** They treat one LCP number as a hard gate or claim cross-browser CWV parity.
+
+### C31. “How would you test a microservices architecture?” — outline beyond E2E.
+**Ideal approach:** Consumer-driven contracts (Pact), service virtualization (WireMock), Testcontainers for real deps, API tests for business rules, thin Playwright for critical journeys. Mention ice-cream-cone risk if everything is UI E2E.
+**Why they get stuck:** They answer with only Selenium/Playwright end-to-end flows.
+
+### C32. axe-core reports zero violations but a screen-reader user cannot complete a form. How do you explain that?
+**Ideal approach:** Cite automation coverage limits — Deque’s own research found ~57% of *issue volume* covered on average; the “20–40% / ~a third” figure refers to WCAG *success criteria* coverage. Automation is necessary but insufficient; manual keyboard + NVDA/VoiceOver/JAWS remains mandatory. Know WCAG A/AA/AAA and POUR.
+**Why they get stuck:** They treat axe green as “accessible.”
+
+---

@@ -1925,5 +1925,110 @@ window.SECTION_MCQ = {
         stuck: "Wrong layer for the risk."
       }
     ]
+  },
+"test-design": {
+    title: "Test design — practice MCQs",
+    items: [
+      {
+        q: "For an integer field valid from 1 to 100, which set best matches classic BVA?",
+        options: ["50 only", "0,1,2,99,100,101", "1 and 100 only", "Random 20 values in range"],
+        answer: 1,
+        explain: "BVA hits just outside, on, and just inside each boundary.",
+        think: "“Mid-value is enough if EP says valid class.”",
+        actual: "Defects cluster at edges — mid alone misses off-by-one.",
+        stuck: "Suites full of happy mid-values that still ship boundary bugs."
+      },
+      {
+        q: "Pairwise testing is most useful when:",
+        options: [
+          "You only have one input field",
+          "Full cartesian product of factors is huge but most bugs are from 2-way interactions",
+          "You want 100% E2E coverage of every combination",
+          "Unit tests are forbidden"
+        ],
+        answer: 1,
+        explain: "Pairwise covering arrays reduce cases while catching most interaction defects; high-risk triples still need explicit cases.",
+        think: "“Either test everything or test nothing.”",
+        actual: "Combinatorial design is a deliberate trade-off.",
+        stuck: "Either combinatorial explosion in UI or no interaction coverage."
+      }
+    ]
+  },
+  "multi-context": {
+    title: "Multi-context — practice MCQs",
+    items: [
+      {
+        q: "Two users must interact in one scenario. Best isolation approach?",
+        options: [
+          "One page: logout then login as the other user",
+          "Two browser contexts (or storageStates) with separate pages",
+          "Share cookies via localStorage between tabs",
+          "Use waitForTimeout between role switches"
+        ],
+        answer: 1,
+        explain: "Independent contexts keep cookies/storage isolated — required for concurrent admin+user flows.",
+        think: "“One browser window is simpler.”",
+        actual: "Shared context leaks session and creates races.",
+        stuck: "Order-dependent flakes and wrong-role assertions."
+      }
+    ]
+  },
+  "grids-mobile": {
+    title: "Grids & mobile — practice MCQs",
+    items: [
+      {
+        q: "Playwright mobile project primarily gives you:",
+        options: [
+          "Native iOS/Android app automation",
+          "Mobile-web emulation (viewport, UA, touch) — not native apps",
+          "Appium desired capabilities built-in",
+          "Automatic webview context switching for hybrid apps"
+        ],
+        answer: 1,
+        explain: "Native/hybrid needs Appium/Maestro/Detox. Playwright = browsers + mobile web emulation.",
+        think: "“Playwright replaces Appium for native.”",
+        actual: "Different layers: web vs native.",
+        stuck: "Promising native coverage with device descriptors only."
+      }
+    ]
+  },
+  "a11y-wcag": {
+    title: "WCAG depth — practice MCQs",
+    items: [
+      {
+        q: "axe-core finds zero issues. Is the page accessible?",
+        options: [
+          "Yes — automation covers all WCAG",
+          "Not necessarily — automation covers a fraction of issues/criteria; manual AT testing still required",
+          "Only if you also ran Lighthouse SEO",
+          "Only on WebKit"
+        ],
+        answer: 1,
+        explain: "Deque cites ~57% of issue volume on average; success-criteria coverage figures are lower. Green axe ≠ done.",
+        think: "“Zero violations = ship a11y.”",
+        actual: "Keyboard traps, SR names, and many WCAG criteria need humans.",
+        stuck: "False confidence in automated-only a11y gates."
+      }
+    ]
+  },
+  "currency-2026": {
+    title: "Currency 2026 — practice MCQs",
+    items: [
+      {
+        q: "Self-healing that keeps CI green is risky primarily because:",
+        options: [
+          "It uses too much CPU",
+          "It can silently change assertions/locators (intent-drift) while staying green",
+          "Playwright forbids it",
+          "It only works in Firefox"
+        ],
+        answer: 1,
+        explain: "Invisible wrong asserts are worse than visible failures — demand audit trails and false-heal metrics.",
+        think: "“Green means fixed.”",
+        actual: "Heal can mask product bugs or weaken assertions.",
+        stuck: "Shipping with false confidence after overnight heals."
+      }
+    ]
   }
+
 };

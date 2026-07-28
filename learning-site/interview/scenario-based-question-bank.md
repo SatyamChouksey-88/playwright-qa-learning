@@ -232,6 +232,22 @@ Fixtures, auth, mocking, CI, and reliability scenarios for 2–5 years. Panels p
 **Ideal approach:** Treat "which UI version" as just another piece of context the test needs, the same way role or locale is: parameterize page objects or locators by UI version, and drive version selection from a test account whose creation date is deliberately set to fall on the side you want, rather than hoping a random real account lands on the right variant. Run the core journeys against both versions; retire the legacy-version tests on the same day the legacy UI is retired, not before.
 **Why they get stuck:** 
 
+### B31. How do you design test cases for an age field that accepts 18–65?
+**Ideal approach:** Use equivalence partitioning (invalid below 18, valid 18–65, invalid above 65) plus boundary-value analysis at 17/18/19 and 64/65/66. Automate the critical boundaries in API/unit where cheap; keep a thin UI check for the user-visible error message. Do not invent dozens of mid-range E2E paths.
+**Why they get stuck:** 
+
+### B32. Playwright pierces open shadow roots automatically. What breaks with a closed shadow root, and what is `css:light` for?
+**Ideal approach:** Closed shadow roots cannot be pierced — you need a public API, test IDs on the host, or slots that surface content to light DOM. css:light restricts matching to light DOM only when you must avoid piercing open roots. Interview signal: know the limit, not just “Playwright handles shadow DOM.”
+**Why they get stuck:** 
+
+### B33. When would you use Appium (or Maestro/Detox) instead of Playwright for “mobile”?
+**Ideal approach:** Playwright covers mobile-*web* emulation (viewport, user-agent, touch). Native and hybrid apps need Appium/Maestro/Detox with context switching for webviews. Saying “Playwright does mobile” without that distinction is a classic gotcha.
+**Why they get stuck:** 
+
+### B34. How do worker-scoped fixtures differ from test-scoped ones, and what is `mergeTests` for?
+**Ideal approach:** Worker-scoped fixtures set up once per worker process (expensive shared resources); test-scoped run per test. mergeTests composes fixture sets from different modules without hand-rolling a mega-fixture file. Prefer worker scope only when isolation still holds.
+**Why they get stuck:** 
+
 ## Tier C — Senior (5–9 years)
 
 Architecture, flake governance, hybrid design, and trade-off reasoning for 5–9 years. Senior signal = restraint and naming what you deliberately will not build.
@@ -342,6 +358,26 @@ Architecture, flake governance, hybrid design, and trade-off reasoning for 5–9
 
 ### C27. "Place order" fails somewhere behind the UI — could be the API gateway, payment, inventory, notifications, or shipping. Where do you start, and what should you never do first?
 **Ideal approach:** Never start by re-running the UI test and staring at the browser — in a microservices system the UI is the last hop, not the first place to look. Start from what the request actually did behind the scenes: pull the correlation/trace ID for that request, follow it through the API gateway and each service's logs, check response times and error rates per service, and confirm which service actually returned the failure before touching the frontend at all. Only once the failing service is identified does it make sense to reproduce and debug at the UI layer, if the UI layer is even where the fix belongs.
+**Why they get stuck:** 
+
+### C28. Design a Playwright test where an admin and a customer interact in the same scenario (e.g., support chat).
+**Ideal approach:** Two browser.newContext() instances (or two storageStates) with independent pages; never share cookies. Coordinate via API seeds or UI assertions on each side. Handle popups with waitForEvent('popup') when OAuth/help opens a tab. This is a top Mid→Senior discriminator.
+**Why they get stuck:** 
+
+### C29. How do you mock or assert WebSocket traffic in Playwright for live balance updates?
+**Ideal approach:** Register page.routeWebSocket() / listeners *before* goto . Mock frames or observe real ones; assert the UI end state, not every wire frame. Know close codes (1000 vs 1006). Prefer UI contracts for Bank Demo notifications.
+**Why they get stuck:** 
+
+### C30. How would you capture Core Web Vitals in a Playwright check, and what caveats do you mention?
+**Ideal approach:** Inject PerformanceObserver (LCP/CLS/INP) in Chromium; note CWV APIs are Chromium-centric, single runs are noisy (median of 3–5), and CI budgets beat vanity screenshots. Optional: playwright-lighthouse / CDP throttling.
+**Why they get stuck:** 
+
+### C31. “How would you test a microservices architecture?” — outline beyond E2E.
+**Ideal approach:** Consumer-driven contracts (Pact), service virtualization (WireMock), Testcontainers for real deps, API tests for business rules, thin Playwright for critical journeys. Mention ice-cream-cone risk if everything is UI E2E.
+**Why they get stuck:** 
+
+### C32. axe-core reports zero violations but a screen-reader user cannot complete a form. How do you explain that?
+**Ideal approach:** Cite automation coverage limits — Deque’s own research found ~57% of *issue volume* covered on average; the “20–40% / ~a third” figure refers to WCAG *success criteria* coverage. Automation is necessary but insufficient; manual keyboard + NVDA/VoiceOver/JAWS remains mandatory. Know WCAG A/AA/AAA and POUR.
 **Why they get stuck:** 
 
 ## Tier D — Lead / Solutions Architect (9+ years)
@@ -506,4 +542,20 @@ Platform economics, migration, governance, and org-scale decisions for 9+ years.
 
 ### D40. You must cut the interview bank to a “QA 75” curated core for a two-week prep sprint. How do you choose what stays?
 **Ideal approach:** Keep forcing-function scenarios: flake triage, locator priority, storageState, hybrid API+UI, sharding economics, and agent governance (D10/D36). Drop duplicate mechanism questions and trivia. Pair each kept card with a runnable drill (Bank Demo, lab, or mini-app) — Dunlosky: retrieval + spacing beat rereading. Publish the cut list so candidates know the contract.
+**Why they get stuck:** 
+
+### D41. Leadership asks for DORA metrics and a flake budget. What do you report and target?
+**Ideal approach:** Deployment frequency, lead time for changes, change-failure rate, MTTR — plus defect escape rate (often target <5%, zero critical) and flakiness rate (often <1%). Pair with which critical journeys are covered. Pass rate alone is insufficient.
+**Why they get stuck:** 
+
+### D42. How do you evaluate self-healing tests for silent intent-drift?
+**Ideal approach:** Healed tests can pass while asserting the wrong thing — trading visible failures for invisible ones. Demand audit trails, false-heal rates, human review of locator/assertion changes, and bake-offs on known-broken vs flaky suites. Prefer governance over “always heal.”
+**Why they get stuck:** 
+
+### D43. How would you evaluate an AI browser-agent / computer-use model for production QA assistance?
+**Ideal approach:** Beyond happy-path benchmarks (WebArena), measure recovery-rate-per-failure-mode: DOM drift, screenshot ambiguity, login-state loss, modals, rate limits, irreversibility. Separate product E2E gates from agent eval harnesses; watch token cost in CI.
+**Why they get stuck:** 
+
+### D44. After reading the CrowdStrike or Knight Capital postmortems, what testing/process control would you require before a high-blast-radius config/deploy ships?
+**Ideal approach:** Staged/canary rollout, tested deploy scripts (not only app binaries), schema/contract validation that cannot be skipped by wildcards, and production synthetics on critical paths. Tie to blast radius and rollback drills — not more UI clicks alone.
 **Why they get stuck:** 
