@@ -15,7 +15,7 @@ test('@external DemoQA — drag the box and assert it moved', async ({ page }) =
   await expect(box).toBeVisible();
 
   const before = await box.boundingBox();
-  expect(before).toBeTruthy();
+  expect(before).not.toBeNull();
 
   await page.mouse.move(before!.x + before!.width / 2, before!.y + before!.height / 2);
   await page.mouse.down();
@@ -23,6 +23,6 @@ test('@external DemoQA — drag the box and assert it moved', async ({ page }) =
   await page.mouse.up();
 
   const after = await box.boundingBox();
-  expect(after).toBeTruthy();
+  expect(after).not.toBeNull();
   expect(Math.abs(after!.x - before!.x) + Math.abs(after!.y - before!.y)).toBeGreaterThan(40);
 });

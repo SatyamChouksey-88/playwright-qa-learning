@@ -1,5 +1,13 @@
 import { test, expect, Page } from '@playwright/test';
 
+async function blockAdNetworks(page: Page) {
+  await page.route('**/*.doubleclick.net/**', (route) => route.abort());
+  await page.route('**/googlesyndication.com/**', (route) => route.abort());
+  await page.route('**/googleadservices.com/**', (route) => route.abort());
+  await page.route('**/pagead2.googlesyndication.com/**', (route) => route.abort());
+  await page.route('**/adservice.google.com/**', (route) => route.abort());
+}
+
 async function dismissDemoQaNoise(page: Page) {
   await page.locator('#close-fixedban').click({ timeout: 2000 }).catch(() => {});
   await page.evaluate(() => {
@@ -8,6 +16,7 @@ async function dismissDemoQaNoise(page: Page) {
 }
 
 test('@external DemoQA — edit an existing web-table row and search', async ({ page }) => {
+  await blockAdNetworks(page);
   await page.goto('https://demoqa.com/webtables', { waitUntil: 'domcontentloaded' });
   await dismissDemoQaNoise(page);
 
@@ -19,10 +28,10 @@ test('@external DemoQA — edit an existing web-table row and search', async ({ 
   }
 
   // Edit first row instead of Add — fewer modal/ad race conditions
-  await page.locator('#edit-record-1').click({ force: true });
+  await page.locator('#edit-record-1').click();
   await expect(page.locator('#userForm')).toBeVisible();
   await page.locator('#firstName').fill('CierraEdited');
-  await page.locator('#submit').click({ force: true });
+  await page.locator('#submit').click();
 
   await expect(tableBody).toContainText('CierraEdited');
 

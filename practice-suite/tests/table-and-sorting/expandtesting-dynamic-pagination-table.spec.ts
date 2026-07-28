@@ -12,6 +12,6 @@ test('@external ExpandTesting — paginated table navigates to next page', async
   await next.click();
 
   await expect(table.locator('tbody tr').first()).toBeVisible();
-  const firstAfter = await table.locator('tbody tr').first().innerText();
-  expect(firstAfter).not.toEqual(firstBefore);
+  const firstAfter = table.locator('tbody tr').first();
+  await expect(firstAfter).not.toHaveText(firstBefore);
 });

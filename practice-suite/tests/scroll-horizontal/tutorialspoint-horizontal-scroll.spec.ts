@@ -8,7 +8,7 @@ test('@external TutorialsPoint — page has horizontal overflow content to scrol
     const candidates = [...document.querySelectorAll('div, section, main, body')];
     return candidates.some((el) => (el as HTMLElement).scrollWidth > (el as HTMLElement).clientWidth + 20);
   });
-  expect(hasOverflow).toBeTruthy();
+  expect(hasOverflow).toBe(true);
 
   await page.evaluate(() => {
     const el = [...document.querySelectorAll('div, section, main')].find(
@@ -24,5 +24,5 @@ test('@external TutorialsPoint — page has horizontal overflow content to scrol
     ) as HTMLElement | undefined;
     return el ? el.scrollLeft > 0 : window.scrollX > 0;
   });
-  expect(scrolled).toBeTruthy();
+  expect(scrolled).toBe(true);
 });

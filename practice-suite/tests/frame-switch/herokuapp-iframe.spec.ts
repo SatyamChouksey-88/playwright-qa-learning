@@ -14,9 +14,11 @@ test('@external The Internet — open iframe page and type in TinyMCE', async ({
     }
   });
 
+  // Wait for any leftover notification overlay to be gone, then click via frameLocator (no force).
+  await expect(page.locator('.tox-notification').first()).toBeHidden({ timeout: 5000 }).catch(() => {});
   const editor = page.frameLocator('#mce_0_ifr').locator('#tinymce');
   await expect(editor).toBeVisible();
-  await editor.click({ force: true });
+  await editor.click();
   await page.keyboard.press('Control+A');
   await page.keyboard.type('Hello from Playwright frame');
   await expect(editor).toContainText('Hello from Playwright frame');

@@ -1,11 +1,12 @@
 import { test as base, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { PERSONAS, type PersonaId } from './personas';
 
 type BankFixtures = {
   loginPage: LoginPage;
   dashboardPage: DashboardPage;
-  loginAs: (user: 'apex_user' | 'apex_2fa' | 'apex_locked' | 'apex_glitch') => Promise<void>;
+  loginAs: (user: PersonaId) => Promise<void>;
 };
 
 export const test = base.extend<BankFixtures>({
@@ -17,14 +18,10 @@ export const test = base.extend<BankFixtures>({
   },
   loginAs: async ({ page, loginPage }, use) => {
     await use(async (user) => {
-      const passwords: Record<string, string> = {
-        apex_user: 'Password123!',
-        apex_2fa: 'Password2FA!',
-        apex_locked: 'Password123!',
-        apex_glitch: 'Password123!',
-      };
+      const persona = PERSONAS[user];
       await page.goto('/index.html#bank-demo');
-      await loginPage.signIn(user, passwords[user]);
+      await loginPage.signIn(user, persona.password);
+      await expect(page.getByTestId('welcome-banner')).toBeVisible();
     });
   },
 });
