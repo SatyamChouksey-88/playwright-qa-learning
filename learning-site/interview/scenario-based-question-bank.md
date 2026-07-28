@@ -487,3 +487,23 @@ Platform economics, migration, governance, and org-scale decisions for 9+ years.
 ### D35. Your company acquires two other companies with completely different tech stacks (one has no automation at all, one has a mature but different framework), and separately the product is moving toward independently-deployed micro-frontends owned by different teams. Design the automation strategy across both kinds of heterogeneity.
 **Ideal approach:** Don't force convergence on day one in either case — converge on outcomes and interfaces, not implementation. For the acquisitions: define what "adequately tested" means as an outcome (critical-journey coverage, a flakiness ceiling, a CI gate) and let each acquired team evolve their existing tooling toward that bar on a realistic timeline, rather than mandating an immediate rewrite that stalls their product work. For micro-frontends: since each is independently deployed, each should own its own test suite scoped to itself, with a thin, centrally-owned integration/contract layer verifying the seams (shared navigation, cross-fragment data contracts), so no team's release is gated on every other team's suite.
 **Why they get stuck:** 
+
+### D36. Leadership wants “AI writes all our Playwright tests.” What governance do you put around Playwright Test Agents (planner / generator / healer) before enabling them in CI?
+**Ideal approach:** Treat agents as scaffolding with review gates, not ownership. Require human approval of locators, assertions, and especially skips — the healer may skip when it believes the product is broken, which *changes suite signal*. Ban discouraged APIs ( networkidle , hard sleeps) in agent prompts to match healer guidance. Track generation cost and re-run new tests several times before merge. Interview line: “AI scaffolds; humans own architecture.”
+**Why they get stuck:** 
+
+### D37. Your product is an LLM chat app: streaming tokens, tool calls, and non-deterministic answers. How do you design Playwright coverage without asserting exact prose?
+**Ideal approach:** Assert contracts and UX states , not golden strings: stream started/finished indicators, tool-call side effects in the UI, citation chips present, error/retry banners, stop-generation cancel, and schema-validated API fixtures via route . Use seeded prompts + stubbed model responses for determinism in CI; reserve a small “live model” canary nightly. Prefer ARIA snapshots for layout of the transcript chrome over pixel screenshots of token text.
+**Why they get stuck:** 
+
+### D38. An MCP client drives your app in a demo. What do you test in Playwright vs leave to the MCP evaluation harness?
+**Ideal approach:** Playwright owns the product UI and auth boundaries : login, permissions, destructive action confirms, and that MCP-driven mutations still leave the UI consistent. The MCP harness owns tool-schema correctness and agent planning quality. Share one browser via browser.bind() when documenting the dual path, but keep CI suites independent so an LLM flake cannot red the product gate.
+**Why they get stuck:** 
+
+### D39. A vendor demo shows “self-healing selectors” fixing CI overnight. How do you evaluate it for a regulated product?
+**Ideal approach:** Demand evidence on false heal rate , audit trail (what changed, who approved), reproducibility, and failure mode when the product is actually broken (must not silently skip). Run a bake-off on your flakiest 20 tests with heal disabled vs enabled, measuring escaped defects. Prefer Playwright’s first-party agents with review gates over opaque vendor magic if auditability is required.
+**Why they get stuck:** 
+
+### D40. You must cut the interview bank to a “QA 75” curated core for a two-week prep sprint. How do you choose what stays?
+**Ideal approach:** Keep forcing-function scenarios: flake triage, locator priority, storageState, hybrid API+UI, sharding economics, and agent governance (D10/D36). Drop duplicate mechanism questions and trivia. Pair each kept card with a runnable drill (Bank Demo, lab, or mini-app) — Dunlosky: retrieval + spacing beat rereading. Publish the cut list so candidates know the contract.
+**Why they get stuck:** 
