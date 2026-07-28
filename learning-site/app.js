@@ -897,21 +897,39 @@ let pages = Array.from(document.querySelectorAll('.page'));
 const searchPanel = document.getElementById('searchPanel');
 const sidebar = document.getElementById('sidebar');
 const backdrop = document.getElementById('sidebarBackdrop');
-const PAGE_ORDER = links.map(l => l.dataset.target).filter(Boolean);
+const PAGE_ORDER = [...new Set(
+  links.filter(l => !l.closest('.reviser-strip')).map(l => l.dataset.target).filter(Boolean),
+)];
 
 function show(id, push = true) {
   searchPanel.classList.add('hidden');
   document.getElementById('searchInput').value = '';
   pages.forEach(p => p.classList.toggle('hidden', p.id !== id));
   links.forEach(l => l.classList.toggle('active', l.dataset.target === id));
+  // Expand the nav group that contains the active destination.
+  links.filter(l => l.dataset.target === id).forEach(l => {
+    const group = l.closest('details.nav-group');
+    if (group) group.open = true;
+  });
   // Jump to top immediately on section switch (bypass CSS smooth-scroll).
   window.scrollTo({ top: 0, behavior: 'instant' });
   sidebar.classList.remove('open');
   backdrop?.classList.add('hidden');
+  document.getElementById('menuBtn')?.setAttribute('aria-expanded', 'false');
   if (push && location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
   updatePageNav(id);
   const activeLink = links.find(l => l.dataset.target === id);
   activeLink?.scrollIntoView({ block: 'nearest' });
+  const pageEl = document.getElementById(id);
+  if (pageEl?.classList.contains('page')) {
+    if (!pageEl.hasAttribute('tabindex')) pageEl.setAttribute('tabindex', '-1');
+    try { pageEl.focus({ preventScroll: true }); } catch { /* ignore */ }
+  }
+  const live = document.getElementById('ariaLive');
+  if (live) {
+    const label = activeLink?.textContent?.trim() || id;
+    live.textContent = `Opened ${label}`;
+  }
 }
 
 const LEGACY_INTERVIEW_HASH = {
@@ -965,12 +983,23 @@ function updatePageNav(id) {
 
 links.forEach(l => l.addEventListener('click', () => show(l.dataset.target)));
 document.getElementById('menuBtn').addEventListener('click', () => {
-  sidebar.classList.toggle('open');
-  backdrop?.classList.toggle('hidden', !sidebar.classList.contains('open'));
+  const open = sidebar.classList.toggle('open');
+  backdrop?.classList.toggle('hidden', !open);
+  document.getElementById('menuBtn')?.setAttribute('aria-expanded', String(open));
 });
 backdrop?.addEventListener('click', () => {
   sidebar.classList.remove('open');
   backdrop.classList.add('hidden');
+  document.getElementById('menuBtn')?.setAttribute('aria-expanded', 'false');
+});
+
+document.querySelectorAll('.hero-cta [data-go], .hero-cta a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.dataset.go || a.getAttribute('href')?.slice(1);
+    if (!id) return;
+    e.preventDefault();
+    show(id);
+  });
 });
 
 window.addEventListener('hashchange', () => {
@@ -1008,7 +1037,7 @@ if (saved) document.documentElement.dataset.theme = saved;
 
 function paintThemeButton() {
   const isLight = document.documentElement.dataset.theme === 'light';
-  themeBtn.textContent = isLight ? '☀️' : '🌙';
+  themeBtn.textContent = isLight ? 'Dark' : 'Light';
   themeBtn.setAttribute('aria-label', isLight ? 'Switch to dark theme' : 'Switch to light theme');
   themeBtn.setAttribute('aria-pressed', String(isLight));
 }
@@ -1093,8 +1122,14 @@ function enhanceCodeBlocks(root = document) {
           ta.value = raw; document.body.appendChild(ta); ta.select();
           document.execCommand('copy'); ta.remove();
         }
-        btn.textContent = 'Copied ✓';
-        setTimeout(() => (btn.textContent = 'Copy'), 1400);
+        btn.textContent = 'Copied';
+        btn.classList.add('is-copied');
+        const live = document.getElementById('ariaLive');
+        if (live) live.textContent = 'Code copied to clipboard';
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('is-copied');
+        }, 1400);
       });
       wrap.appendChild(btn);
     }
@@ -1568,7 +1603,9 @@ function runSearch(q) {
   });
 
   if (!hits.length) {
-    searchResults.innerHTML = `<div class="card">No matches for <b>${escHtml(query)}</b>.</div>`;
+    searchResults.innerHTML = `<div class="empty-state"><strong>No matches for “${escHtml(query)}”</strong>Try a locator API, “flaky”, “storageState”, or a tier id like B12. Press Esc to leave search.</div>`;
+    const live = document.getElementById('ariaLive');
+    if (live) live.textContent = `No search results for ${query}`;
     return;
   }
 
@@ -1576,14 +1613,22 @@ function runSearch(q) {
   searchResults.innerHTML = hits.slice(0, 40).map(h => {
     const title = escHtml(h.title || h.id).replace(rx, '<span class="searchhit">$1</span>');
     const nav = escHtml(h.nav || h.kind || '');
-    return `<div class="result" data-go="${escHtml(h.target || 'home')}">
+    return `<div class="result" data-go="${escHtml(h.target || 'home')}" tabindex="0" role="button">
        <div class="rsec">${nav}</div>
        <div>${title}</div>
      </div>`;
   }).join('');
 
-  searchResults.querySelectorAll('.result').forEach(r =>
-    r.addEventListener('click', () => show(r.dataset.go)));
+  const live = document.getElementById('ariaLive');
+  if (live) live.textContent = `${Math.min(hits.length, 40)} search results`;
+
+  searchResults.querySelectorAll('.result').forEach(r => {
+    const go = () => show(r.dataset.go);
+    r.addEventListener('click', go);
+    r.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); }
+    });
+  });
 }
 
 let t;
@@ -1671,13 +1716,18 @@ function renderQuiz() {
         if (!correct) div.querySelectorAll('.opt')[item.answer].classList.add('correct');
         div.querySelector('.explain').classList.add('show');
         fill.style.width = (answered / window.QUIZ.length * 100) + '%';
+        const live = document.getElementById('ariaLive');
+        if (live) live.textContent = correct ? 'Correct' : 'Incorrect';
         if (answered === window.QUIZ.length) {
           const pct = Math.round(score / window.QUIZ.length * 100);
           doneEl.classList.remove('hidden');
-          doneEl.innerHTML = `<h3 class="sub">Finished — ${score}/${window.QUIZ.length} (${pct}%)</h3>
-            <p class="lead">${pct >= 85 ? 'Excellent — you are interview ready. Try Random drill next.' :
-              pct >= 60 ? 'Solid base. Re-read Locators, Fixtures, Waiting, and Anti-patterns, then retry.' :
-              'Work through Core API + Flake playbook again, then retake.'}</p>`;
+          const verdict = pct >= 80
+            ? `<div class="empty-state" style="border-style:solid"><strong class="pill pass">Pass ${pct}%</strong>Interview-ready threshold met. Try Random drill next.</div>`
+            : pct >= 60
+              ? `<div class="empty-state"><strong class="pill warn">Borderline ${pct}%</strong>Re-read Locators, Fixtures, Waiting, and Anti-patterns, then retry.</div>`
+              : `<div class="empty-state"><strong class="pill fail">Needs work ${pct}%</strong>Work through Core API + Flake playbook again, then retake.</div>`;
+          doneEl.innerHTML = `<h3 class="sub">Finished — ${score}/${window.QUIZ.length}</h3>${verdict}`;
+          if (live) live.textContent = `Quiz finished ${score} of ${window.QUIZ.length}, ${pct} percent`;
           if (pct >= 80) {
             studyDone.add('quiz');
             saveSet(STUDY_KEY, studyDone);

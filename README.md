@@ -51,7 +51,9 @@ npm run test:external           # nightly / hostile hosts
 
 - PR: content check + bank-demo Chromium
 - Nightly / `workflow_dispatch`: sharded `@external`
-- Pages: deploys `learning-site/` on main (enable GitHub Pages → Actions)
+- Pages: workflow deploys `learning-site/` from `main`
+
+**If the live demo 404s:** enable **Settings → Pages → Source: GitHub Actions**, then re-run “Deploy Pages” (or push a `learning-site/**` change). Until Pages is enabled, GitHub cannot publish and the `github.io` URL stays 404. Local forever works: open `learning-site/index.html` via `file://`.
 
 Live (when enabled): https://satyamchouksey-88.github.io/playwright-qa-learning/learning-site/
 

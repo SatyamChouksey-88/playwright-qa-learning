@@ -132,9 +132,11 @@
     const cards = await ensureSeeded(api);
     queue = dueCards(cards);
     current = queue[0] || null;
-    const dueEl = host.querySelector('[data-fsrs-due]');
+    const dueEl = document.querySelector('[data-fsrs-due]');
     if (dueEl) dueEl.textContent = String(queue.length);
     renderCard(host);
+    const live = document.getElementById('ariaLive');
+    if (live) live.textContent = queue.length ? `${queue.length} cards due` : 'Review queue empty';
   }
 
   async function grade(host, api, rating) {

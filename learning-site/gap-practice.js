@@ -26,21 +26,24 @@
     const sidebar = document.getElementById('sidebar');
     if (!sidebar || !window.GAP_PAGES) return;
     if (sidebar.querySelector('[data-gap-nav]')) return;
-    const h = document.createElement('h4');
-    h.textContent = 'SDET breadth & labs';
-    h.dataset.gapNav = '1';
-    const resources = sidebar.querySelector('[data-target="resources"]');
-    const frag = document.createDocumentFragment();
-    frag.appendChild(h);
+    const details = document.createElement('details');
+    details.className = 'nav-group';
+    details.open = true;
+    details.dataset.gapNav = '1';
+    details.dataset.navGroup = 'gap';
+    const summary = document.createElement('summary');
+    summary.textContent = 'SDET breadth & labs';
+    details.appendChild(summary);
     window.GAP_PAGES.forEach((p) => {
       const a = document.createElement('a');
       a.className = 'navlink';
       a.dataset.target = p.id;
       a.textContent = p.nav;
-      frag.appendChild(a);
+      details.appendChild(a);
     });
-    if (resources) sidebar.insertBefore(frag, resources);
-    else sidebar.appendChild(frag);
+    const practice = sidebar.querySelector('[data-nav-group="practice"]');
+    if (practice) sidebar.insertBefore(details, practice);
+    else sidebar.appendChild(details);
   }
 
   function widgetBva(host) {
