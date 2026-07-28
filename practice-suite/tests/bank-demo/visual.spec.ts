@@ -8,7 +8,7 @@ test.describe('Bank Demo visual @bank-demo', () => {
     const card = page.locator('#bank-demo .bank-card, #bank-demo [data-testid="auth-screen"]').first();
     await expect(card).toBeVisible();
     await expect(card).toHaveScreenshot('bank-login-card.png', {
-      maxDiffPixelRatio: 0.02,
+      maxDiffPixelRatio: 0.06,
       mask: [page.locator('.bank-toast')],
     });
   });

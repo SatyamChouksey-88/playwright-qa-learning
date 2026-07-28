@@ -662,6 +662,7 @@ details.qa>summary{align-items:flex-start}
 .bank-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .bank-nav{display:flex;flex-wrap:wrap;gap:6px}
 .bank-balances{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bank-auth{min-height:284px;box-sizing:border-box}
 .bank-auth label,.bank-panel label{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;font-size:13.5px;color:var(--muted)}
 .bank-auth input,.bank-panel input,.bank-panel select,.bank-panel textarea{
   padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)
