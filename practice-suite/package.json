@@ -16,7 +16,9 @@
     "test:scroll-v": "playwright test tests/scroll-vertical",
     "test:tables": "playwright test tests/table-and-sorting",
     "test:frames": "playwright test tests/frame-switch",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "test:bank-demo": "playwright test --project=bank-demo",
+    "test:external": "playwright test --project=chromium-external"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
