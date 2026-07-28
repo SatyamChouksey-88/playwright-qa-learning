@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('The Internet — open new window via Promise.all', async ({ page, context }) => {
+test('@external The Internet — open new window via Promise.all', async ({ page, context }) => {
   await page.goto('https://the-internet.herokuapp.com/windows', { waitUntil: 'domcontentloaded' });
 
   if (await page.getByText(/Application error/i).isVisible().catch(() => false)) {

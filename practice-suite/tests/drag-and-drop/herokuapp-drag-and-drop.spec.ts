@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('The Internet — drag column A onto column B', async ({ page }) => {
+test('@external The Internet — drag column A onto column B', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/drag_and_drop');
 
   const columnA = page.locator('#column-a');

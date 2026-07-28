@@ -7,7 +7,7 @@ async function dismissDemoQaNoise(page: Page) {
   });
 }
 
-test('DemoQA — drag the box and assert it moved', async ({ page }) => {
+test('@external DemoQA — drag the box and assert it moved', async ({ page }) => {
   await page.goto('https://demoqa.com/dragabble', { waitUntil: 'domcontentloaded' });
   await dismissDemoQaNoise(page);
 

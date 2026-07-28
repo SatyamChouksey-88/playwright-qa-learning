@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('DemoQA — open new tab and new window', async ({ page, context }) => {
+test('@external DemoQA — open new tab and new window', async ({ page, context }) => {
   await page.goto('https://demoqa.com/browser-windows');
   await page.locator('#close-fixedban').click({ timeout: 3000 }).catch(() => {});
 

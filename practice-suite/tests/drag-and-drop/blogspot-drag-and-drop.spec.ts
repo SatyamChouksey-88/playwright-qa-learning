@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('Blogspot practice — drag #draggable onto #droppable', async ({ page }) => {
+test('@external Blogspot practice — drag #draggable onto #droppable', async ({ page }) => {
   await page.goto('https://testautomationpractice.blogspot.com/');
 
   const drag = page.locator('#draggable');

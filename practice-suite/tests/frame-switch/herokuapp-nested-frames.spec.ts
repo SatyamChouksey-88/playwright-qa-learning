@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('The Internet — nested frames LEFT and MIDDLE text', async ({ page }) => {
+test('@external The Internet — nested frames LEFT and MIDDLE text', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/nested_frames');
 
   const top = page.frameLocator('frame[name="frame-top"]');

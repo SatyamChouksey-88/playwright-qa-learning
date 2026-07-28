@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — alert, confirm, and prompt dialogs', async ({ page }) => {
+test('@external ExpandTesting — alert, confirm, and prompt dialogs', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/js-dialogs', { waitUntil: 'domcontentloaded' });
 
   // Alert

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 /**
  * Classic column swap (#column-a / #column-b) — same pattern as Heroku.
  */
-test('ExpandTesting — drag column A onto column B', async ({ page }) => {
+test('@external ExpandTesting — drag column A onto column B', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/drag-and-drop');
 
   const columnA = page.locator('#column-a');

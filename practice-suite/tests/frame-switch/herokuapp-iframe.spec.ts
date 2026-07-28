@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('The Internet — open iframe page and type in TinyMCE', async ({ page }) => {
+test('@external The Internet — open iframe page and type in TinyMCE', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/iframe', { waitUntil: 'domcontentloaded' });
 
   await page.locator('.tox-notification__dismiss, button.tox-notification__dismiss').click({ timeout: 3000 }).catch(() => {});

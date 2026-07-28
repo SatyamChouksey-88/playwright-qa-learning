@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('The Internet — infinite scroll appends more content', async ({ page }) => {
+test('@external The Internet — infinite scroll appends more content', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/infinite_scroll', {
     waitUntil: 'domcontentloaded',
   });

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 const sample = path.join(__dirname, '../../fixtures/sample-upload.txt');
 
-test('ExpandTesting — upload a local file and see success', async ({ page }) => {
+test('@external ExpandTesting — upload a local file and see success', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/upload');
 
   const fileInput = page.locator('#fileInput, input[type="file"]').first();

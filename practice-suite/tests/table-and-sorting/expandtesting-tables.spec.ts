@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — static tables are readable', async ({ page }) => {
+test('@external ExpandTesting — static tables are readable', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/tables');
 
   const table = page.locator('table').first();

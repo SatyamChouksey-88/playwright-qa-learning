@@ -10,7 +10,7 @@ async function dismissDemoQaNoise(page: Page) {
   });
 }
 
-test('DemoQA — drop draggable into droppable (Simple tab)', async ({ page }) => {
+test('@external DemoQA — drop draggable into droppable (Simple tab)', async ({ page }) => {
   await page.goto('https://demoqa.com/droppable', { waitUntil: 'domcontentloaded' });
   await dismissDemoQaNoise(page);
 

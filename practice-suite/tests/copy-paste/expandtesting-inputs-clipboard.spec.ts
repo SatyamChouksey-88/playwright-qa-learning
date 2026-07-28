@@ -8,7 +8,7 @@ test.describe('ExpandTesting inputs clipboard', () => {
     permissions: ['clipboard-read', 'clipboard-write'],
   });
 
-  test('write to clipboard, paste into number input via keyboard', async ({ page, context }) => {
+  test('@external write to clipboard, paste into number input via keyboard', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('https://practice.expandtesting.com/inputs');
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — type into TinyMCE iframe', async ({ page }) => {
+test('@external ExpandTesting — type into TinyMCE iframe', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/iframe', { waitUntil: 'domcontentloaded' });
 
   await page.locator('.tox-notification__dismiss, button.tox-notification__dismiss').click({ timeout: 3000 }).catch(() => {});

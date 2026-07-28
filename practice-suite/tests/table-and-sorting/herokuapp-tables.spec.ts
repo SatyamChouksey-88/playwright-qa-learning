@@ -6,7 +6,7 @@ function isSorted(values: string[], direction: 'asc' | 'desc') {
   return values.every((v, i) => v === sorted[i]);
 }
 
-test('The Internet — sort Example 1 table by Last Name', async ({ page }) => {
+test('@external The Internet — sort Example 1 table by Last Name', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/tables', { waitUntil: 'domcontentloaded' });
 
   if (await page.getByText(/Application error/i).isVisible().catch(() => false)) {

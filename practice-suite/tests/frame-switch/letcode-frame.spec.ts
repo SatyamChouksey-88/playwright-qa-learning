@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('LetCode — fill name inside nested frames', async ({ page }) => {
+test('@external LetCode — fill name inside nested frames', async ({ page }) => {
   await page.goto('https://letcode.in/frame');
 
   const outer = page.frameLocator('#firstFr');

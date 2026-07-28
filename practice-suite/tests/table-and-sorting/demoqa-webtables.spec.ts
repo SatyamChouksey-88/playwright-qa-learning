@@ -7,7 +7,7 @@ async function dismissDemoQaNoise(page: Page) {
   });
 }
 
-test('DemoQA — edit an existing web-table row and search', async ({ page }) => {
+test('@external DemoQA — edit an existing web-table row and search', async ({ page }) => {
   await page.goto('https://demoqa.com/webtables', { waitUntil: 'domcontentloaded' });
   await dismissDemoQaNoise(page);
 

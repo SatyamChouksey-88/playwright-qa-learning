@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — dynamic table shows Chrome CPU and matches UI value', async ({ page }) => {
+test('@external ExpandTesting — dynamic table shows Chrome CPU and matches UI value', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/dynamic-table');
 
   const table = page.getByRole('table').or(page.locator('table')).first();

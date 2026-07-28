@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('DemoQA — immediate alert, confirm, and prompt', async ({ page }) => {
+test('@external DemoQA — immediate alert, confirm, and prompt', async ({ page }) => {
   await page.goto('https://demoqa.com/alerts');
   await page.locator('#close-fixedban').click({ timeout: 3000 }).catch(() => {});
 

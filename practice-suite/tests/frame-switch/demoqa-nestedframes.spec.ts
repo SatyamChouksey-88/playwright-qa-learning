@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('DemoQA — nested frames parent → child text', async ({ page }) => {
+test('@external DemoQA — nested frames parent → child text', async ({ page }) => {
   await page.goto('https://demoqa.com/nestedframes');
   await page.locator('#close-fixedban').click({ timeout: 3000 }).catch(() => {});
 

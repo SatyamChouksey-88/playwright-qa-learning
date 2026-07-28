@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('The Internet — keyboard-drive the horizontal slider', async ({ page }) => {
+test('@external The Internet — keyboard-drive the horizontal slider', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/horizontal_slider', {
     waitUntil: 'domcontentloaded',
   });

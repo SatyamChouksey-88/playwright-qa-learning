@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('SelectorsHub — xpath practice page with shadow DOM input', async ({ page }) => {
+test('@external SelectorsHub — xpath practice page with shadow DOM input', async ({ page }) => {
   await page.goto('https://selectorshub.com/xpath-practice-page/', { waitUntil: 'domcontentloaded' });
 
   await page.getByRole('button', { name: /accept|agree|close|got it/i }).click({ timeout: 4000 }).catch(() => {});

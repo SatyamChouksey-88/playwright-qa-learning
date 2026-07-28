@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — scroll horizontally until hiding button is visible', async ({ page }) => {
+test('@external ExpandTesting — scroll horizontally until hiding button is visible', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/scrollbars');
 
   const button = page.locator('#hidingButton');

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('SelectorsHub — cross-origin iframe is reachable', async ({ page }) => {
+test('@external SelectorsHub — cross-origin iframe is reachable', async ({ page }) => {
   await page.goto('https://selectorshub.com/cross-origin-iframe/');
 
   // Cross-origin: we can still locate the iframe element and assert it loaded

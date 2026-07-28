@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('GlobalSQA — drag a photo into the trash (inside demo iframe)', async ({ page }) => {
+test('@external GlobalSQA — drag a photo into the trash (inside demo iframe)', async ({ page }) => {
   await page.goto('https://www.globalsqa.com/demo-site/draganddrop/');
 
   // Cookie consent if shown

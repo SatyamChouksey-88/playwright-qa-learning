@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — open new window and assert content', async ({ page, context }) => {
+test('@external ExpandTesting — open new window and assert content', async ({ page, context }) => {
   await page.goto('https://practice.expandtesting.com/windows');
 
   const popupPromise = context.waitForEvent('page');

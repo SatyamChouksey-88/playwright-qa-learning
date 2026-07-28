@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /** Unverified list — confirmed live; classic multi-frame demo. */
-test('UI.Vision — nested frames demo loads frame tree', async ({ page }) => {
+test('@external UI.Vision — nested frames demo loads frame tree', async ({ page }) => {
   await page.goto('https://ui.vision/demo/webtest/frames/', { waitUntil: 'domcontentloaded' });
 
   expect(page.frames().length).toBeGreaterThan(1);

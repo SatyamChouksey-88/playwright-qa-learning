@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('LetCode — read shopping table totals', async ({ page }) => {
+test('@external LetCode — read shopping table totals', async ({ page }) => {
   await page.goto('https://letcode.in/table');
 
   const table = page.locator('#shopping');

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /** Index page that links to iframe / nested frames demos. */
-test('The Internet — frames index links to iframe demo', async ({ page }) => {
+test('@external The Internet — frames index links to iframe demo', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/frames', { waitUntil: 'domcontentloaded' });
 
   await expect(page.getByRole('heading', { name: 'Frames' })).toBeVisible();

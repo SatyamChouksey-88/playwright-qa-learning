@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('DemoQA — read sample text from both iframes', async ({ page }) => {
+test('@external DemoQA — read sample text from both iframes', async ({ page }) => {
   await page.goto('https://demoqa.com/frames');
   await page.locator('#close-fixedban').click({ timeout: 3000 }).catch(() => {});
 

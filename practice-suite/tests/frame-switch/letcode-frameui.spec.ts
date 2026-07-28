@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('LetCode frame UI — interact with framed controls', async ({ page }) => {
+test('@external LetCode frame UI — interact with framed controls', async ({ page }) => {
   await page.goto('https://letcode.in/frameui');
 
   const frame = page.frameLocator('iframe').first();

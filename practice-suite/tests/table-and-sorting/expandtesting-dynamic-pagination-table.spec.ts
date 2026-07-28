@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — paginated table navigates to next page', async ({ page }) => {
+test('@external ExpandTesting — paginated table navigates to next page', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/dynamic-pagination-table');
 
   const table = page.getByRole('table').or(page.locator('table')).first();

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /** In-page tabs (not browser tabs) — still a common “tab switch” interview topic. */
-test('DemoQA — switch in-page tabs and assert panel content', async ({ page }) => {
+test('@external DemoQA — switch in-page tabs and assert panel content', async ({ page }) => {
   await page.goto('https://demoqa.com/tabs');
   await page.locator('#close-fixedban').click({ timeout: 3000 }).catch(() => {});
 

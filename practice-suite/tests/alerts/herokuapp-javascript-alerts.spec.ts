@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('The Internet — JS alert, confirm, and prompt', async ({ page }) => {
+test('@external The Internet — JS alert, confirm, and prompt', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/javascript_alerts');
 
   page.once('dialog', async (dialog) => {

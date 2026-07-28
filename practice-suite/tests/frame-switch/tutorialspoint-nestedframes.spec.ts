@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('TutorialsPoint — nested frames content is readable', async ({ page }) => {
+test('@external TutorialsPoint — nested frames content is readable', async ({ page }) => {
   await page.goto('https://www.tutorialspoint.com/selenium/practice/nestedframes.php');
 
   const outer = page.frameLocator('iframe').first();

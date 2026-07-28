@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — move horizontal slider and assert range value', async ({ page }) => {
+test('@external ExpandTesting — move horizontal slider and assert range value', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/horizontal-slider');
 
   const slider = page.locator('input[type="range"]');

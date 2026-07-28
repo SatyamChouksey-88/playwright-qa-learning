@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('TutorialsPoint — page has horizontal overflow content to scroll', async ({ page }) => {
+test('@external TutorialsPoint — page has horizontal overflow content to scroll', async ({ page }) => {
   await page.goto('https://www.tutorialspoint.com/selenium/practice/horizontal-scroll.php');
 
   // Prefer a wide element / container — fall back to document scrollWidth check

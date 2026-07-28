@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('TutorialsPoint — interact with framed input', async ({ page }) => {
+test('@external TutorialsPoint — interact with framed input', async ({ page }) => {
   await page.goto('https://www.tutorialspoint.com/selenium/practice/frames.php', {
     waitUntil: 'domcontentloaded',
   });

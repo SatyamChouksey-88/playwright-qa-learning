@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — drag colored circles into the target', async ({ page }) => {
+test('@external ExpandTesting — drag colored circles into the target', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/drag-and-drop-circles');
 
   const target = page.locator('#target');

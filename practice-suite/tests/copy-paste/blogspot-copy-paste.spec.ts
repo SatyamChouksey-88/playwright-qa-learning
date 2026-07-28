@@ -9,7 +9,7 @@ test.describe('Copy / paste', () => {
     permissions: ['clipboard-read', 'clipboard-write'],
   });
 
-  test('Blogspot — double-click Copy Text copies field1 into field2', async ({ page }) => {
+  test('@external Blogspot — double-click Copy Text copies field1 into field2', async ({ page }) => {
     await page.goto('https://testautomationpractice.blogspot.com/');
 
     const field1 = page.locator('#field1');
@@ -24,7 +24,7 @@ test.describe('Copy / paste', () => {
     await expect(field2).toHaveValue('Hello Playwright Clipboard');
   });
 
-  test('Blogspot — seed clipboard then paste into field2', async ({ page, context }) => {
+  test('@external Blogspot — seed clipboard then paste into field2', async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('https://testautomationpractice.blogspot.com/');
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('ExpandTesting — infinite scroll loads more content blocks', async ({ page }) => {
+test('@external ExpandTesting — infinite scroll loads more content blocks', async ({ page }) => {
   await page.goto('https://practice.expandtesting.com/infinite-scroll', {
     waitUntil: 'domcontentloaded',
   });

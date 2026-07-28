@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 const sample = path.join(__dirname, '../../fixtures/sample-upload.txt');
 
-test('The Internet — upload a file and assert filename on result page', async ({ page }) => {
+test('@external The Internet — upload a file and assert filename on result page', async ({ page }) => {
   await page.goto('https://the-internet.herokuapp.com/upload');
 
   await page.locator('#file-upload').setInputFiles(sample);

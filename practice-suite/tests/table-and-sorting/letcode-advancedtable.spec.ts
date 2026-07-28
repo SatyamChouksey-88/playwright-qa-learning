@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('LetCode advanced table — search/filter and assert row', async ({ page }) => {
+test('@external LetCode advanced table — search/filter and assert row', async ({ page }) => {
   await page.goto('https://letcode.in/advancedtable');
 
   const search = page.getByRole('searchbox').or(page.locator('input[type="search"]')).first();
