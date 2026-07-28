@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "build:content": "node tools/content/build-content.mjs",
-    "check:content": "node tools/content/build-content.mjs --check"
+    "check:content": "node tools/content/build-content.mjs --check",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test:bank-demo": "npm --prefix practice-suite run test:bank-demo"
   },
   "repository": {
     "type": "git",
@@ -16,7 +19,13 @@
   "license": "MIT",
   "homepage": "https://github.com/SatyamChouksey-88/playwright-qa-learning#readme",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "eslint-plugin-playwright": "^2.11.0",
     "minisearch": "^7.2.0",
+    "prettier": "^3.9.6",
+    "ts-fsrs": "^5.4.1",
+    "typescript-eslint": "^8.65.0",
     "yaml": "^2.8.0"
   }
 }
