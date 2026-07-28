@@ -1,3 +1,16 @@
+---
+tier: C
+tier_key: tierC
+id: interview-tier-c
+title: Tier C — Senior (5–9 years)
+lead: Architecture, flake governance, hybrid design, and trade-off reasoning for
+  5–9 years. Senior signal = restraint and naming what you deliberately will not
+  build.
+difficulty: senior
+topic: scenarios
+pw_version_introduced: "1.40"
+---
+
 # Tier C — Senior (5–9 years)
 
 Architecture, flake governance, hybrid design, and trade-off reasoning for 5–9 years. Senior signal = restraint and naming what you deliberately will not build.

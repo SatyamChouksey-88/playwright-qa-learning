@@ -1,3 +1,16 @@
+---
+tier: B
+tier_key: tierB
+id: interview-tier-b
+title: Tier B — Intermediate / Mid-level (2–5 years)
+lead: Fixtures, auth, mocking, CI, and reliability scenarios for 2–5 years.
+  Panels push past syntax here — diagnosis order matters more than memorised
+  snippets.
+difficulty: intermediate
+topic: scenarios
+pw_version_introduced: "1.40"
+---
+
 # Tier B — Intermediate / Mid-level (2–5 years)
 
 Fixtures, auth, mocking, CI, and reliability scenarios for 2–5 years. Panels push past syntax here — diagnosis order matters more than memorised snippets.

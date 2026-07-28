@@ -1,3 +1,16 @@
+---
+tier: D
+tier_key: tierD
+id: interview-tier-d
+title: Tier D — Lead / Solutions Architect (9+ years)
+lead: Platform economics, migration, governance, and org-scale decisions for 9+
+  years. Prefer scenarios with a forcing function — a number, deadline, or
+  cross-team constraint.
+difficulty: architect
+topic: scenarios
+pw_version_introduced: "1.40"
+---
+
 # Tier D — Lead / Solutions Architect (9+ years)
 
 Platform economics, migration, governance, and org-scale decisions for 9+ years. Prefer scenarios with a forcing function — a number, deadline, or cross-team constraint.

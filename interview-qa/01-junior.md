@@ -1,3 +1,16 @@
+---
+tier: A
+tier_key: tierA
+id: interview-tier-a
+title: Tier A — Beginner / Fresher (0–2 years)
+lead: Scenario-based screening questions for 0–2 years. Read each scenario out
+  loud, then compare to the ideal approach — the "why they get stuck" line tells
+  you which instinct to override.
+difficulty: beginner
+topic: scenarios
+pw_version_introduced: "1.40"
+---
+
 # Tier A — Beginner / Fresher (0–2 years)
 
 Scenario-based screening questions for 0–2 years. Read each scenario out loud, then compare to the ideal approach — the "why they get stuck" line tells you which instinct to override.

@@ -1,0 +1,76 @@
+hub:
+  title: Scenario-based interview bank
+  lead: 117 scenario questions across four tiers (Beginner → Architect), plus the
+    Interview essentials pack (HR, QA theory, BDD, Git, MCP). Read each question
+    out loud, then check the ideal approach — the "why they get stuck" line is
+    usually more useful than the answer.
+recommendations:
+  html: " <strong>As a candidate (staged prep):</strong> 1. <em>Weeks 1–2:</em>
+    Drill Tier A/B out loud until flakiness triage (reproduce → trace →
+    categorize → fix), locator priority, storageState, and hybrid API+UI are
+    automatic. Benchmark: you can explain a trace and fix a flaky test without
+    saying \"add a retry.\" 2. <em>Weeks 3–4:</em> For senior roles, build one
+    real portfolio suite (POM + fixtures + sharded CI + merged report + visual +
+    a11y) and rehearse Tier C answers out loud. 3. <em>For lead/architect
+    roles:</em> Pick five Tier D questions at random and whiteboard each in five
+    minutes, naming trade-offs and what you'd deliberately <em>not</em> build.
+    If you can't name the thing you're choosing not to do, you're not done
+    yet.<br><br><strong>As an interviewer (staged use):</strong> Screen in this
+    order — locator strategy, flake diagnosis, maintenance/architecture
+    economics. Use one Tier B scenario as a live \"fix this flaky test\"
+    exercise; escalate to Tier D for lead/architect candidates, and prefer the
+    ones with a concrete forcing function (a number, a deadline, a constraint
+    from another team) over the abstract ones — they're harder to answer from
+    memorized talking points. Red flags across every tier: \"just add a retry,\"
+    \"always build/always buy,\" \"POM for everything,\" treating a migration as
+    a syntax swap, answering an organizational problem with a testing
+    technique.<br><br><strong>Threshold to change approach:</strong> If a
+    candidate nails mechanisms but can't reason about trade-offs or restraint,
+    they're strong mid-level, not senior. If they lead with trade-offs and
+    restraint before syntax, and have real war stories about flake, isolation,
+    or migration, that's the senior/lead signal. "
+tiers:
+  A:
+    key: tierA
+    file: 01-junior.md
+    id: interview-tier-a
+    title: Tier A — Beginner / Fresher (0–2 years)
+    lead: Scenario-based screening questions for 0–2 years. Read each scenario out
+      loud, then compare to the ideal approach — the "why they get stuck" line
+      tells you which instinct to override.
+    difficulty: beginner
+    topic: scenarios
+    pw_version_introduced: "1.40"
+  B:
+    key: tierB
+    file: 02-mid.md
+    id: interview-tier-b
+    title: Tier B — Intermediate / Mid-level (2–5 years)
+    lead: Fixtures, auth, mocking, CI, and reliability scenarios for 2–5 years.
+      Panels push past syntax here — diagnosis order matters more than memorised
+      snippets.
+    difficulty: intermediate
+    topic: scenarios
+    pw_version_introduced: "1.40"
+  C:
+    key: tierC
+    file: 03-senior.md
+    id: interview-tier-c
+    title: Tier C — Senior (5–9 years)
+    lead: Architecture, flake governance, hybrid design, and trade-off reasoning for
+      5–9 years. Senior signal = restraint and naming what you deliberately will
+      not build.
+    difficulty: senior
+    topic: scenarios
+    pw_version_introduced: "1.40"
+  D:
+    key: tierD
+    file: 04-architect.md
+    id: interview-tier-d
+    title: Tier D — Lead / Solutions Architect (9+ years)
+    lead: Platform economics, migration, governance, and org-scale decisions for 9+
+      years. Prefer scenarios with a forcing function — a number, deadline, or
+      cross-team constraint.
+    difficulty: architect
+    topic: scenarios
+    pw_version_introduced: "1.40"
