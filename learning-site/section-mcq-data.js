@@ -235,6 +235,20 @@ window.SECTION_MCQ = {
         think: "“Click, then wait.”",
         actual: "Fast downloads finish before the listener attaches.",
         stuck: "Flaky download timeouts in CI."
+      },
+      {
+        q: "`locator.drop()` (1.60+) is mainly for…",
+        options: [
+          "Replacing all click() calls",
+          "Dropping files (or payloads) onto a drop zone that listens for drop events",
+          "Closing the browser",
+          "Disabling actionability checks globally"
+        ],
+        answer: 1,
+        explain: "Prefer drop() for HTML5 file/drop-target flows instead of brittle mouse sequences when the app listens for drop.",
+        think: "“dragTo and drop are the same.”",
+        actual: "dragTo moves an element; drop targets file/payload drop zones.",
+        stuck: "Hand-rolling mouse.down/up for every file upload zone."
       }
     ]
   },
@@ -730,7 +744,7 @@ window.SECTION_MCQ = {
   },
 
   pom: {
-    title: "Page Object Model — practice MCQs",
+    title: "POM ↔ fixtures — practice MCQs",
     items: [
       {
         q: "What should a page object expose?",
@@ -761,17 +775,31 @@ window.SECTION_MCQ = {
         stuck: "Can’t tell what failed without reading POM internals."
       },
       {
+        q: "Default for a new small-to-medium suite in 2026?",
+        options: [
+          "Always a deep BasePage inheritance tree",
+          "Fixtures exposing business intents; add thin page objects when the same UI churns across many tests",
+          "No structure — copy-paste locators forever",
+          "Only component testing, never E2E"
+        ],
+        answer: 1,
+        explain: "Fixtures-first reduces ceremony; POM pays off when selector churn concentrates on shared surfaces.",
+        think: "“Interview answer is always full POM.”",
+        actual: "Senior answer is a decision rule, not dogma.",
+        stuck: "Mega page hierarchies before understanding locators."
+      },
+      {
         q: "POM vs fixtures — short distinction?",
         options: [
           "Same thing",
-          "POM models pages/components; fixtures provide setup/injection/lifecycle",
+          "POM models pages/components; fixtures provide setup/injection/lifecycle (and can expose intents without classes)",
           "Fixtures replace locators",
           "POM only works without TypeScript"
         ],
         answer: 1,
-        explain: "Use both: fixture gives you `shopPage`, POM defines how shopPage works.",
+        explain: "Different layers: fixtures wire the test; page objects (optional) encapsulate UI surfaces.",
         think: "“Pick one: fixtures OR page objects.”",
-        actual: "They solve different layers.",
+        actual: "They compose — or fixtures alone for many suites.",
         stuck: "Either no structure or over-abstracted mess."
       }
     ]
@@ -865,10 +893,24 @@ window.SECTION_MCQ = {
           "expect.soft"
         ],
         answer: 1,
-        explain: "Dependent projects wait for setup project success.",
-        think: "“Just run files in folder order.”",
-        actual: "Config dependencies make order explicit and CI-safe.",
-        stuck: "Race: tests start before auth JSON exists."
+        explain: "Setup project runs first; dependents load storageState.",
+        think: "“Just put login in beforeAll of every file.”",
+        actual: "Duplicated logins and racey shared state.",
+        stuck: "Slow suites and login flakes."
+      },
+      {
+        q: "`page.localStorage` / `sessionStorage` helpers (1.61+) exist so you…",
+        options: [
+          "Avoid browser contexts entirely",
+          "Read/write origin storage without wrapping every call in page.evaluate",
+          "Replace cookies",
+          "Disable storageState"
+        ],
+        answer: 1,
+        explain: "First-class helpers for common storage ops; storageState still snapshots sessions for reuse.",
+        think: "“evaluate is the only way forever.”",
+        actual: "Verbose boilerplate and harder-to-read auth setup.",
+        stuck: "Copy-pasting evaluate snippets in every test."
       }
     ]
   },
@@ -1008,6 +1050,34 @@ window.SECTION_MCQ = {
         think: "“Always re-record baselines to go green.”",
         actual: "You can bake bugs into baselines.",
         stuck: "Blind -u updates in CI."
+      },
+      {
+        q: "`toMatchAriaSnapshot` is valuable because it…",
+        options: [
+          "Compares raw pixels like a screenshot",
+          "Asserts accessibility-tree structure (roles/names) — more OS-independent than pixels",
+          "Replaces axe-core entirely",
+          "Only works in Firefox"
+        ],
+        answer: 1,
+        explain: "ARIA snapshots catch structural/a11y-name regressions without font-flake pixel diffs.",
+        think: "“It’s just another PNG.”",
+        actual: "Different tool: structure vs pixels.",
+        stuck: "Fighting visual flake when an ARIA snapshot would suffice."
+      },
+      {
+        q: "`page.accessibility` in modern Playwright?",
+        options: [
+          "Still the recommended a11y API",
+          "Removed in 1.57 — use axe-core + ARIA snapshots",
+          "Only available on WebKit",
+          "Required for getByRole"
+        ],
+        answer: 1,
+        explain: "Long-deprecated API was removed; curriculum flags this on the Deprecated board.",
+        think: "“Old tutorial code still works.”",
+        actual: "Suite fails to compile/run on current Playwright.",
+        stuck: "Copy-pasting pre-1.57 snippets into interviews."
       }
     ]
   },
@@ -1610,6 +1680,249 @@ window.SECTION_MCQ = {
         think: "Every red build is a bad XPath.",
         actual: "Wasted time rewriting locators when the env was down.",
         stuck: "Only blaming locators."
+      }
+    ]
+  },
+
+  "whats-new": {
+    title: "What's new — practice MCQs",
+    items: [
+      {
+        q: "Playwright Test Agents (planner/generator/healer) arrived roughly in…",
+        options: ["1.20", "1.56", "1.40", "Only as a separate paid product"],
+        answer: 1,
+        explain: "Agents shipped around 1.56 via `npx playwright init-agents`.",
+        think: "“Agents have always been core.”",
+        actual: "Recent surface — interviewers may ask governance more than APIs.",
+        stuck: "Claiming expertise without knowing healer skip behavior."
+      },
+      {
+        q: "Why pin `@playwright/test` instead of floating latest?",
+        options: [
+          "npm forbids latest",
+          "APIs are version-gated (ARIA, Clock, WebAuthn, Agents) — pin so the suite matches docs/CI",
+          "TypeScript requires it",
+          "GitHub Pages blocks unpinned packages"
+        ],
+        answer: 1,
+        explain: "Currency modules assume known minima; floating majors surprise CI.",
+        think: "“Always take latest on every install.”",
+        actual: "Breaks from removed APIs (e.g. page.accessibility) or experimental CT churn.",
+        stuck: "Debugging ‘works on my machine’ version drift."
+      },
+      {
+        q: "Bundled Playwright MCP / CLI are highlighted from…",
+        options: ["1.30", "1.62", "1.45", "Selenium 4"],
+        answer: 1,
+        explain: "1.62 bundles MCP/CLI surfaces this curriculum maps under Agents & MCP.",
+        think: "“MCP is only a third-party plugin.”",
+        actual: "First-party tooling exists; still needs human review.",
+        stuck: "Out-of-date ‘no MCP’ interview answers."
+      }
+    ]
+  },
+
+  deprecated: {
+    title: "Deprecated — practice MCQs",
+    items: [
+      {
+        q: "`page.accessibility` status as of Playwright 1.57+?",
+        options: ["Recommended", "Removed — use axe-core + ARIA snapshots", "Firefox-only", "Required for traces"],
+        answer: 1,
+        explain: "Removed after long deprecation.",
+        think: "“Still in every tutorial.”",
+        actual: "Code fails on current Playwright.",
+        stuck: "Shipping dead API snippets."
+      },
+      {
+        q: "`waitForLoadState('networkidle')` is…",
+        options: ["Best practice for SPAs", "Discouraged — assert UI/network you control", "Required before every click", "Faster than expect"],
+        answer: 1,
+        explain: "Healer guidance and docs discourage networkidle; prefer end-state asserts.",
+        think: "“Idle network means UI is ready.”",
+        actual: "SPAs rarely go idle; flakes and long waits.",
+        stuck: "Sleep-shaped waits dressed as networkidle."
+      },
+      {
+        q: "Playwright Docker `:latest` / floating distro tags?",
+        options: ["Always use them", "Pin an exact version tag — floating tags stopped publishing", "Only for WebKit", "Required by GitHub Actions"],
+        answer: 1,
+        explain: "Pin versions for reproducible CI.",
+        think: "`:latest` is fine forever.",
+        actual: "Image pull breaks or silent drift.",
+        stuck: "Mystery CI failures after image moves."
+      }
+    ]
+  },
+
+  "agents-mcp": {
+    title: "Agents & MCP — practice MCQs",
+    items: [
+      {
+        q: "Healer may skip a test when it believes the product is broken. Why does that matter?",
+        options: [
+          "Skipped tests always count as failures",
+          "It changes suite signal — green/skip is not the same as a fixed assertion",
+          "Skips delete the test file",
+          "It only happens locally"
+        ],
+        answer: 1,
+        explain: "Governance: humans must review skips and own architecture.",
+        think: "“Healer makes CI always green — perfect.”",
+        actual: "Silent coverage loss.",
+        stuck: "Trusting agent output without review gates."
+      },
+      {
+        q: "Strongest interview framing for Agents/MCP?",
+        options: [
+          "AI replaces SDETs",
+          "AI scaffolds; humans own locators, assertions, secrets, and suite quality",
+          "MCP removes the need for CI",
+          "Only use codegen forever"
+        ],
+        answer: 1,
+        explain: "Accelerator with review — not autonomous ownership.",
+        think: "“Generated tests ship as-is.”",
+        actual: "Brittle suites and leaked secrets.",
+        stuck: "Over-claiming AI autonomy."
+      },
+      {
+        q: "MCP vs playwright-cli — useful distinction?",
+        options: [
+          "Identical interfaces",
+          "MCP is tool-call oriented for LLM clients; CLI is often more token-efficient with filesystem access",
+          "CLI cannot drive a browser",
+          "MCP only works offline"
+        ],
+        answer: 1,
+        explain: "Trade-off question interviewers may ask in 2026.",
+        think: "“Pick MCP always.”",
+        actual: "Cost/permissions differ by client.",
+        stuck: "No vocabulary for the trade-off."
+      }
+    ]
+  },
+
+  clock: {
+    title: "Clock API — practice MCQs",
+    items: [
+      {
+        q: "Best use of `page.clock`?",
+        options: [
+          "Speed up CI by skipping assertions",
+          "Fast-forward timers/Date so expiry/OTP UI can be asserted without real waits",
+          "Replace storageState",
+          "Fix network flakes"
+        ],
+        answer: 1,
+        explain: "Install clock, assert, fastForward, assert expired.",
+        think: "“Sleep five minutes in the test.”",
+        actual: "Slow, flaky suite.",
+        stuck: "Never testing timeout UX."
+      },
+      {
+        q: "Clock mocking alone is enough when…",
+        options: [
+          "Always — servers obey page.clock",
+          "The app’s timers/Date are interceptable in the browser; server wall-clock still needs stubs/cooperation",
+          "Only for screenshots",
+          "Never — Clock is experimental forever"
+        ],
+        answer: 1,
+        explain: "Client timers ≠ server expiry.",
+        think: "“One API controls the universe.”",
+        actual: "False confidence on server-driven sessions.",
+        stuck: "Flaky OTP tests against real backends."
+      },
+      {
+        q: "`page.clock` has been GA since roughly…",
+        options: ["1.62 only", "1.45", "1.20", "Never — still experimental"],
+        answer: 1,
+        explain: "Stable Clock API for years; curriculum still treats it as under-taught.",
+        think: "“Too new to mention.”",
+        actual: "Strong interview differentiator for timeout UX.",
+        stuck: "Blank stare on time-control questions."
+      }
+    ]
+  },
+
+  webauthn: {
+    title: "WebAuthn — practice MCQs",
+    items: [
+      {
+        q: "How do you exercise passkey flows in CI without hardware?",
+        options: [
+          "Skip all passkey tests forever",
+          "Virtual authenticator via browserContext.credentials (1.61+)",
+          "Only manual testing on a laptop",
+          "Screenshot the QR code"
+        ],
+        answer: 1,
+        explain: "Virtual credentials make passwordless flows automatable.",
+        think: "“Passkeys can’t be automated.”",
+        actual: "Missing coverage on a high-value auth path.",
+        stuck: "Leaving passkeys out of the portfolio suite."
+      },
+      {
+        q: "WebAuthn credentials can persist into storageState starting in…",
+        options: ["1.40", "1.62", "1.49", "Never"],
+        answer: 1,
+        explain: "1.62 expands storageState to carry WebAuthn credentials.",
+        think: "“Always re-register every test.”",
+        actual: "Unnecessary setup cost.",
+        stuck: "Slow auth setup for passkey suites."
+      },
+      {
+        q: "WebAuthn automation support covers…",
+        options: ["Chromium only", "All Playwright browsers", "WebKit only", "Mobile only"],
+        answer: 1,
+        explain: "Virtual authenticator is cross-browser in modern Playwright.",
+        think: "“Chrome DevTools Protocol only.”",
+        actual: "Narrow coverage.",
+        stuck: "Wrong limitation in interviews."
+      }
+    ]
+  },
+
+  "component-testing": {
+    title: "Component testing — practice MCQs",
+    items: [
+      {
+        q: "Honest status of Playwright component testing?",
+        options: [
+          "Stable since 2020",
+          "Experimental since 2022 — APIs can change between minors",
+          "Deprecated entirely",
+          "Only for Java"
+        ],
+        answer: 1,
+        explain: "Say experimental in interviews; pin exact versions.",
+        think: "“CT is as stable as E2E.”",
+        actual: "Surprise breakages on upgrade.",
+        stuck: "Résumé overclaims."
+      },
+      {
+        q: "`@playwright/experimental-ct-svelte` in 1.59?",
+        options: ["Became stable", "Removed with no long deprecation window", "Renamed only", "Required for React CT"],
+        answer: 1,
+        explain: "Example of experimental risk — package removed.",
+        think: "“Experimental means slow deprecation.”",
+        actual: "Hard break.",
+        stuck: "Surprised migration."
+      },
+      {
+        q: "When is Playwright CT a reasonable choice?",
+        options: [
+          "To replace all E2E journeys",
+          "When a design-system unit needs real browser rendering checks",
+          "Instead of unit tests always",
+          "Only without pinning versions"
+        ],
+        answer: 1,
+        explain: "Narrow use-case; not a pyramid replacement.",
+        think: "“CT kills E2E.”",
+        actual: "Missing user-journey coverage.",
+        stuck: "Wrong layer for the risk."
       }
     ]
   }

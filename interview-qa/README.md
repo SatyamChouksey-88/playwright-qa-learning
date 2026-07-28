@@ -6,4 +6,4 @@ Markdown interview bank for Playwright (scenario tiers + practice labs).
 - Tier files: `01-junior.md` … `04-architect.md`
 - Full consolidated bank: [scenario-based-question-bank.md](./scenario-based-question-bank.md)
 
-Also available inside the learning site: https://github.com/SatyamChouksey-88/PlaywrightLearning
+Also available inside the learning site: https://github.com/SatyamChouksey-88/playwright-qa-learning/tree/main/learning-site
