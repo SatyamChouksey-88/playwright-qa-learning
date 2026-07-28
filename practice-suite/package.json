@@ -1,0 +1,25 @@
+{
+  "name": "playwright-practice-suite",
+  "version": "1.0.0",
+  "description": "Playwright practice suite against public QA demo sandboxes",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:drag": "playwright test tests/drag-and-drop",
+    "test:upload": "playwright test tests/file-upload",
+    "test:alerts": "playwright test tests/alerts",
+    "test:clipboard": "playwright test tests/copy-paste",
+    "test:windows": "playwright test tests/tab-window-switch",
+    "test:scroll-h": "playwright test tests/scroll-horizontal",
+    "test:scroll-v": "playwright test tests/scroll-vertical",
+    "test:tables": "playwright test tests/table-and-sorting",
+    "test:frames": "playwright test tests/frame-switch",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^22.13.10"
+  }
+}

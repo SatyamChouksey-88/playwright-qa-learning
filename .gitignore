@@ -1,0 +1,11 @@
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+*.log
+.env
+.DS_Store
+.vscode/
+.idea/
+**/playwright-practice-suite/
