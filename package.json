@@ -1,0 +1,22 @@
+{
+  "name": "playwright-qa-learning",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright study site + practice suite + interview bank (SatyamChouksey-88)",
+  "type": "module",
+  "scripts": {
+    "build:content": "node tools/content/build-content.mjs",
+    "check:content": "node tools/content/build-content.mjs --check"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SatyamChouksey-88/playwright-qa-learning.git"
+  },
+  "author": "Satyam Chouksey",
+  "license": "MIT",
+  "homepage": "https://github.com/SatyamChouksey-88/playwright-qa-learning#readme",
+  "devDependencies": {
+    "minisearch": "^7.2.0",
+    "yaml": "^2.8.0"
+  }
+}
