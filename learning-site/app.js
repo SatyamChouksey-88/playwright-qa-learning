@@ -517,7 +517,7 @@ function renderScenarioList(container, questions, tierKey) {
     return `
     <details class="qa" id="${item.id || ''}" data-q="${escapeAttr(item.q)}" data-id="${item.id}">
       <summary>
-        <span class="qa-summary-text">${i + 1}. ${item.q}</span>
+        <span class="qa-summary-text">${i + 1}. ${inlineMd(item.q)}</span>
         <span class="qa-actions">
           <button type="button" class="mark-btn ${done ? 'is-done' : ''}" data-mark="${item.id}" title="Mark practiced">${done ? 'Practiced' : 'Mark'}</button>
         </span>
@@ -546,6 +546,16 @@ function renderScenarioList(container, questions, tierKey) {
 
 function escapeAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/* Question text is markdown from the SSOT: escape it, then honour `code` spans. */
+function inlineMd(text) {
+  return String(text ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/`([^`]+)`/g, '<code class="inline">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
 function allInterviewQuestions() {
@@ -885,6 +895,8 @@ const PAGE_ORDER = [...new Set(
   links.filter(l => !l.closest('.reviser-strip')).map(l => l.dataset.target).filter(Boolean),
 )];
 
+let booted = false;
+
 function show(id, push = true) {
   searchPanel.classList.add('hidden');
   document.getElementById('searchInput').value = '';
@@ -903,12 +915,17 @@ function show(id, push = true) {
   if (push && location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
   updatePageNav(id);
   const activeLink = links.find(l => l.dataset.target === id);
-  activeLink?.scrollIntoView({ block: 'nearest' });
+  // Scrolling the nav also moves Chromium's sequential-focus starting point,
+  // so on first paint leave it alone — the skip link must be the first tab stop.
+  if (booted) activeLink?.scrollIntoView({ block: 'nearest' });
   const pageEl = document.getElementById(id);
-  if (pageEl?.classList.contains('page')) {
+  // Move focus only on user navigation — on first paint the skip link must stay
+  // the first tab stop.
+  if (pageEl?.classList.contains('page') && booted) {
     if (!pageEl.hasAttribute('tabindex')) pageEl.setAttribute('tabindex', '-1');
     try { pageEl.focus({ preventScroll: true }); } catch { /* ignore */ }
   }
+  booted = true;
   const live = document.getElementById('ariaLive');
   if (live) {
     const label = activeLink?.textContent?.trim() || id;

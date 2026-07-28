@@ -235,7 +235,13 @@
   function navGroups() {
     return $$('.sidebar details.nav-group').map((group) => {
       const targets = $$('.navlink', group).map((a) => a.dataset.target).filter(Boolean);
-      const label = (group.querySelector('summary')?.textContent || '').trim();
+      // Read only the summary's own text so the injected progress hint is excluded.
+      const summary = group.querySelector('summary');
+      const label = Array.from(summary?.childNodes || [])
+        .filter((n) => n.nodeType === Node.TEXT_NODE)
+        .map((n) => n.textContent.trim())
+        .join(' ')
+        .trim();
       return { label, targets, el: group };
     });
   }
@@ -548,8 +554,10 @@
    * ------------------------------------------------------------------ */
   function buildToc(page) {
     if (!page || page.id === 'home' || page.dataset.tocReady) return;
-    const headings = $$(':scope > h2.sec, :scope > h3.sub', page)
-      .filter((h) => h.textContent.trim().length);
+    const headings = $$('h2.sec, h3.sub', page)
+      .filter((h) => h.textContent.trim().length && !h.closest('details, .tile, .quiz-q, .card'))
+      // The first heading is the page title — the TOC sits beside it already.
+      .filter((h, i) => !(i === 0 && h === page.firstElementChild));
     if (headings.length < 4) return;
     page.dataset.tocReady = '1';
 

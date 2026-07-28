@@ -5,6 +5,18 @@ Owned by **[SatyamChouksey-88](https://github.com/SatyamChouksey-88)** — Playw
 [![Content check](https://github.com/SatyamChouksey-88/playwright-qa-learning/actions/workflows/content-check.yml/badge.svg)](https://github.com/SatyamChouksey-88/playwright-qa-learning/actions/workflows/content-check.yml)
 [![Practice suite](https://github.com/SatyamChouksey-88/playwright-qa-learning/actions/workflows/practice-suite.yml/badge.svg)](https://github.com/SatyamChouksey-88/playwright-qa-learning/actions/workflows/practice-suite.yml)
 
+![Study dashboard, dark theme](./docs/screenshots/dashboard-dark.png)
+
+<details>
+<summary>More screens — command palette, review, light theme</summary>
+
+| | |
+|---|---|
+| ![Command palette](./docs/screenshots/command-palette.png) | ![FSRS review](./docs/screenshots/fsrs-review.png) |
+| ![Dashboard, light theme](./docs/screenshots/dashboard-light.png) | |
+
+</details>
+
 | Folder | What it is |
 |--------|------------|
 | [`learning-site/`](./learning-site/) | Offline SPA — currency modules, Bank Demo, FSRS, MiniSearch (`file://` zero install) |
@@ -24,6 +36,8 @@ Owned by **[SatyamChouksey-88](https://github.com/SatyamChouksey-88)** — Playw
 | External practice specs | 46 `@external` (nightly) |
 | Bank-demo PR specs | auth + site smoke (`@bank-demo`) |
 | Runtime install for site | **0** |
+| Dashboard charts | 4 hand-rolled SVG (heatmap, rings, retention curve, mastery bars) |
+| Contrast floor measured | **5.1:1** dark and light (AA body text) |
 
 ## Quick start
 

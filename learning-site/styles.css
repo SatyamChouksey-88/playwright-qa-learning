@@ -39,7 +39,7 @@
   /* Ink */
   --text:#E9EBF2;
   --muted:#9AA3B4;
-  --faint:#6C7484;
+  --faint:#8A93A6;
 
   /* Signature accent: Playwright green → teal */
   --accent:#35D07F;
@@ -111,10 +111,10 @@
   --hairline:rgba(10,12,20,.06);
   --text:#12131A;
   --muted:#59616F;
-  --faint:#7A8290;
-  --accent:#0E9F6E;
-  --accent-2:#0C8F92;
-  --accent-3:#0B7A57;
+  --faint:#5E6675;
+  --accent:#0B7D5A;
+  --accent-2:#0A757F;
+  --accent-3:#095C43;
   --accent-ink:#FFFFFF;
   --on-accent:#FFFFFF;
   --accent-wash:color-mix(in srgb,var(--accent) 10%,transparent);
@@ -1445,3 +1445,54 @@ label{font-size:var(--fs-sm);color:var(--muted)}
 .codewrap.is-numbered::before{
   content:"";position:absolute;top:0;bottom:0;left:40px;width:1px;background:rgba(255,255,255,.06);
 }
+
+/* ---------- Page prev/next: float inside the content column ---------- */
+.page-nav{
+  position:fixed;z-index:25;left:calc(var(--sidebar-w) + var(--space-5));right:var(--space-5);
+  bottom:var(--space-4);margin:0;padding:0;border:0;background:transparent;pointer-events:none;
+}
+.page-nav > *{pointer-events:auto}
+.page-nav .iconbtn{
+  background:color-mix(in srgb,var(--panel) 88%,transparent);
+  backdrop-filter:blur(10px);box-shadow:var(--shadow-1);max-width:38vw;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:inline-block;line-height:32px;
+}
+.back-top{bottom:64px}
+.content{padding-bottom:var(--space-8)}
+@media (max-width:900px){
+  .page-nav{left:var(--space-4);right:var(--space-4)}
+}
+
+/* ---------- Form fields: stacked label + control, one anatomy ---------- */
+label:has(> input:not([type="checkbox"]):not([type="radio"])),
+label:has(> textarea),
+label:has(> select){
+  display:flex;flex-direction:column;gap:5px;margin:0 0 12px;max-width:640px;
+  font-size:var(--fs-sm);color:var(--muted);
+}
+label:has(> input[type="checkbox"]),
+label:has(> input[type="radio"]){
+  display:inline-flex;align-items:center;gap:8px;margin:0 14px 8px 0;color:var(--text);
+}
+label > input,label > textarea,label > select{width:100%}
+label > input[type="checkbox"],label > input[type="radio"]{width:15px;height:15px;accent-color:var(--accent)}
+textarea{width:100%;max-width:640px;min-height:76px;resize:vertical;font-family:inherit}
+label.iconbtn{display:inline-flex;flex-direction:row;margin:0;max-width:none;color:var(--muted)}
+.pw-api-out,pre[data-m-out],pre[data-br-out]{
+  border:1px solid var(--border);border-radius:var(--radius);background:var(--code-bg);
+  padding:var(--space-4);white-space:pre-wrap;font-size:var(--fs-sm);
+}
+
+/* Deep links must clear the sticky topbar; empty output panes stay invisible. */
+.page{scroll-margin-top:calc(var(--topbar-h) + var(--space-4))}
+pre:empty{display:none}
+
+@media (max-width:480px){
+  .brand-text{display:none}
+  .topbar{gap:var(--space-2);padding:0 var(--space-3)}
+}
+
+
+/* Bar tracks are spans: make them block so the fill can take height. */
+.bar-row .track,.bar-row .fill{display:block}
+
