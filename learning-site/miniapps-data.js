@@ -27,7 +27,7 @@ await expect(page.getByRole('row').filter({ hasText: 'Spider-Man' }))
       skills: ["pressSequentially", "getByRole", "OTP UI"],
       tags: ["otp", "keyboard"],
       solution: `const code = '123456'; // or read from test env / test OTP
-const inputs = page.locator('input[maxlength=\"1\"]');
+const inputs = page.locator('input[maxlength="1"]');
 if (await inputs.count()) {
   for (let i = 0; i < code.length; i++) await inputs.nth(i).fill(code[i]);
 } else {
@@ -73,11 +73,11 @@ await item.click();`,
       challenge: "Drag items into correct order, click verify, assert all green.",
       skills: ["dragTo", "DnD"],
       tags: ["dnd", "list"],
-      solution: `const items = page.locator('[draggable=\"true\"], .sortable-item');
+      solution: `const items = page.locator('[draggable="true"], .sortable-item');
 // Example: move first item onto third slot — adjust to app's expected order
 await items.nth(0).dragTo(items.nth(2));
 await page.getByRole('button', { name: /check|verify|submit/i }).click();
-await expect(page.locator('.text-green, .success, [data-ok=\"true\"]')).toHaveCount(await items.count());`,
+await expect(page.locator('.text-green, .success, [data-ok="true"]')).toHaveCount(await items.count());`,
       why: "Prefer dragTo; fall back to mouse down/move/up if custom DnD.",
     },
     {
@@ -120,7 +120,7 @@ await expect(page.getByText(/success|done|received/i)).toBeVisible();`,
 await inner.getByRole('button').click();
 await expect(page.getByText(/success/i)).toBeVisible();
 // Prefer stable iframe name/title when available:
-// page.frameLocator('iframe[name=\"outer\"]').frameLocator('iframe[name=\"inner\"]')`,
+// page.frameLocator('iframe[name="outer"]').frameLocator('iframe[name="inner"]')`,
       why: "Page locators never pierce frames — chain frameLocator.",
     },
     {
@@ -142,7 +142,7 @@ await expect(page.getByText(/95\\s*%/)).toBeVisible();`,
       tags: ["rating"],
       solution: `for (const n of [1, 2, 3, 4, 5]) {
   await page.getByRole('radio', { name: new RegExp(String(n)) })
-    .or(page.locator(\`[data-value=\"\${n}\"]\`)).first().click();
+    .or(page.locator(\`[data-value="\${n}"]\`)).first().click();
   await expect(page.getByText(new RegExp(String(n)))).toBeVisible();
 }`,
       why: "Assert multiple representations (value, label, icon state).",
@@ -172,7 +172,7 @@ await expect(page.getByText(/hidden message|success/i)).toBeVisible();
       skills: ["setInputFiles"],
       tags: ["upload"],
       solution: `await page.getByLabel(/upload|file/i)
-  .or(page.locator('input[type=\"file\"]'))
+  .or(page.locator('input[type="file"]'))
   .setInputFiles({
     name: 'avatar.png',
     mimeType: 'image/png',
@@ -347,7 +347,7 @@ await expect(frame.getByText(/journey is over|finished|done/i)).toBeVisible({ ti
       challenge: "Set slider to 50; submit feedback.",
       skills: ["fill range", "drag slider"],
       tags: ["slider"],
-      solution: `const slider = page.getByRole('slider').or(page.locator('input[type=\"range\"]'));
+      solution: `const slider = page.getByRole('slider').or(page.locator('input[type="range"]'));
 await slider.fill('50'); // works for many range inputs
 await expect(slider).toHaveValue('50');
 await page.getByRole('button', { name: /submit|send|feedback/i }).click();

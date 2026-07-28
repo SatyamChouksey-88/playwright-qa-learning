@@ -4,8 +4,8 @@
   "description": "Playwright + TypeScript interview and portfolio study guide",
   "start_url": "./index.html",
   "display": "standalone",
+  "theme_color": "#35D07F",
   "background_color": "#0f1419",
-  "theme_color": "#3d8bfd",
   "icons": [
     {
       "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>",

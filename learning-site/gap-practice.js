@@ -286,6 +286,7 @@
 
   function mountWidgets() {
     document.querySelectorAll('[data-gap-widget]').forEach((host) => {
+      if (host.dataset.mounted === '1') return;
       const kind = host.dataset.gapWidget;
       if (kind === 'bva') widgetBva(host);
       if (kind === 'trace') widgetTrace(host);
@@ -295,7 +296,57 @@
       if (kind === 'postmortems') widgetPostmortems(host);
       if (kind === 'metrics') widgetMetrics(host);
       if (kind === 'bugreport') widgetBugReport(host);
+      if (kind === 'codereview') widgetCodeReview(host);
+      host.dataset.mounted = '1';
     });
+  }
+
+  function remountWidgets() {
+    document.querySelectorAll('[data-gap-widget]').forEach((host) => {
+      delete host.dataset.mounted;
+      host.innerHTML = '';
+    });
+    mountWidgets();
+  }
+
+  function widgetCodeReview(host) {
+    const list = window.GAP_CODEREVIEW || [];
+    if (!list.length) {
+      host.innerHTML = '<p class="lead">Code-review drills load with gap-practice data.</p>';
+      return;
+    }
+    let i = 0;
+    const paint = () => {
+      const item = list[i];
+      host.innerHTML = `
+        <div class="gap-cr">
+          <p class="pw-hint">${i + 1}/${list.length} · ${esc(item.title || 'Review this test')}</p>
+          <pre class="pw-api-out" data-cr-bad></pre>
+          <div class="gap-cr-actions">
+            <button type="button" class="pw-btn" data-cr-reveal>Reveal issues</button>
+            <button type="button" class="pw-btn" data-cr-next>Next</button>
+          </div>
+          <div data-cr-out hidden>
+            <h4>Issues</h4>
+            <ul class="tight" data-cr-issues></ul>
+            <h4>Improved</h4>
+            <pre class="pw-api-out" data-cr-fix></pre>
+          </div>
+        </div>`;
+      host.querySelector('[data-cr-bad]').textContent = item.bad || '';
+      host.querySelector('[data-cr-reveal]').onclick = () => {
+        const out = host.querySelector('[data-cr-out]');
+        out.hidden = false;
+        host.querySelector('[data-cr-issues]').innerHTML = (item.issues || [])
+          .map((x) => `<li>${esc(x)}</li>`).join('');
+        host.querySelector('[data-cr-fix]').textContent = item.fix || '';
+      };
+      host.querySelector('[data-cr-next]').onclick = () => {
+        i = (i + 1) % list.length;
+        paint();
+      };
+    };
+    paint();
   }
 
   window.GapPractice = {
@@ -303,6 +354,7 @@
       mountPages();
       injectNav();
       mountWidgets();
+      window.applyReadingTimes?.();
       // Re-bind nav clicks for dynamically added links
       document.querySelectorAll('.navlink[data-target]').forEach((l) => {
         if (l.dataset.gapBound) return;
@@ -312,5 +364,6 @@
         });
       });
     },
+    remountWidgets,
   };
 })();

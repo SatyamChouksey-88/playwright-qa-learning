@@ -8,6 +8,101 @@ const ASSESS_DONE_KEY = 'pw-assess-done';
 const XPATH_DONE_KEY = 'pw-xpath-done';
 const SKILLS_DONE_KEY = 'pw-skills-practice-done';
 
+/** Lazy script injection (file:// safe — relative paths only). */
+const _lazyScripts = new Map();
+function injectScript(src) {
+  if (_lazyScripts.has(src)) return _lazyScripts.get(src);
+  const p = new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[data-lazy-src="${src}"]`);
+    if (existing) {
+      if (existing.dataset.loaded === '1') { resolve(); return; }
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)));
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = src;
+    s.dataset.lazySrc = src;
+    s.onload = () => { s.dataset.loaded = '1'; resolve(); };
+    s.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(s);
+  });
+  _lazyScripts.set(src, p);
+  return p;
+}
+
+function loadMiniSearch() {
+  const payload = window.SEARCH_INDEX;
+  if (!payload?.index || typeof MiniSearch === 'undefined') return null;
+  try {
+    return MiniSearch.loadJS(payload.index, payload.options || {
+      fields: ['title', 'body', 'nav'],
+      storeFields: ['title', 'nav', 'target', 'kind'],
+    });
+  } catch (err) {
+    console.warn('SEARCH_INDEX failed to load', err);
+    return null;
+  }
+}
+
+async function ensureSearchIndex(statusEl) {
+  if (window.PWMiniSearch && window.SEARCH_INDEX?.documentCount) return window.PWMiniSearch;
+  if (statusEl) {
+    statusEl.disabled = true;
+    statusEl.placeholder = 'Loading search…';
+  }
+  try {
+    await injectScript('search-index.js');
+    window.PWMiniSearch = loadMiniSearch();
+  } catch (err) {
+    console.warn(err);
+    if (statusEl) statusEl.placeholder = 'Search failed — reload';
+    throw err;
+  } finally {
+    if (statusEl) {
+      statusEl.disabled = false;
+      if (window.PWMiniSearch) statusEl.placeholder = 'Search topics, questions, labs…';
+    }
+  }
+  return window.PWMiniSearch;
+}
+window.ensureSearchIndex = ensureSearchIndex;
+
+const SECTION_LAZY_SCRIPTS = {
+  miniapps: ['miniapps-data.js'],
+  'miniapps-qa': ['miniapps-data.js'],
+  'antipattern-lab': ['gap-practice-data.js'],
+  'trace-lab': ['gap-practice-data.js'],
+  'star-builder': ['gap-practice-data.js'],
+  'mock-interview': ['gap-practice-data.js'],
+  postmortems: ['gap-practice-data.js'],
+  'code-review-lab': ['gap-practice-data.js'],
+};
+
+async function ensureSectionData(id) {
+  const scripts = SECTION_LAZY_SCRIPTS[id];
+  if (!scripts?.length) return true;
+  const page = document.getElementById(id);
+  try {
+    for (const src of scripts) await injectScript(src);
+    if (id === 'miniapps' || id === 'miniapps-qa') renderMiniapps();
+    if (scripts.includes('gap-practice-data.js')) window.GapPractice?.remountWidgets?.();
+    return true;
+  } catch (err) {
+    console.warn('Section data failed', id, err);
+    if (page && !page.querySelector('[data-empty-fallback]')) {
+      const box = document.createElement('div');
+      box.className = 'empty-state';
+      box.dataset.emptyFallback = '1';
+      box.setAttribute('role', 'alert');
+      box.innerHTML = '<strong>Content failed to load</strong><span>Reload the page or check the console.</span>';
+      page.prepend(box);
+    }
+    return false;
+  }
+}
+window.ensureSectionData = ensureSectionData;
+
 const STUDY_ITEMS = [
   { id: 'home', label: 'Overview / mental model' },
   { id: 'whats-new', label: "What's new (1.49–1.62)" },
@@ -871,7 +966,29 @@ function updateStudyLabel() {
   if (!label) return;
   const pct = Math.round((studyDone.size / STUDY_ITEMS.length) * 100);
   label.textContent = `(${studyDone.size}/${STUDY_ITEMS.length} · ${pct}%)`;
+  window.PWDash?.refreshLearningPath?.();
 }
+
+/** Append · N min next to section titles from build-time READING_TIMES. */
+function applyReadingTimes() {
+  const times = window.READING_TIMES;
+  if (!times || typeof times !== 'object') return;
+  for (const [id, mins] of Object.entries(times)) {
+    const n = Number(mins);
+    if (!Number.isFinite(n) || n < 1) continue;
+    const section = document.getElementById(id);
+    if (!section) continue;
+    const heading = section.querySelector('h2.sec, h1');
+    if (!heading || heading.querySelector('.read-time')) continue;
+    const span = document.createElement('span');
+    span.className = 'read-time';
+    span.textContent = `· ${Math.round(n)} min`;
+    heading.appendChild(span);
+  }
+}
+window.applyReadingTimes = applyReadingTimes;
+applyReadingTimes();
+
 
 document.getElementById('resetStudyProgress')?.addEventListener('click', () => {
   studyDone = new Set();
@@ -883,6 +1000,13 @@ document.getElementById('resetInterviewProgress')?.addEventListener('click', () 
   saveSet(PRACTICE_KEY, practiced);
   renderInterviewSection();
   updateInterviewProgress();
+});
+document.getElementById('resetAllProgress')?.addEventListener('click', () => {
+  if (!window.confirm('Wipe all local progress, theme preference, and bank-demo session keys on this device?')) return;
+  const n = window.PWStorage?.wipeAllAppKeys?.() ?? 0;
+  const live = document.getElementById('ariaLive');
+  if (live) live.textContent = `Reset ${n} storage keys`;
+  location.reload();
 });
 
 /* ---------------- Navigation ---------------- */
@@ -931,6 +1055,7 @@ function show(id, push = true) {
     const label = activeLink?.textContent?.trim() || id;
     live.textContent = `Opened ${label}`;
   }
+  void ensureSectionData(id);
 }
 
 const LEGACY_INTERVIEW_HASH = {
@@ -1068,6 +1193,9 @@ themeBtn.addEventListener('click', () => {
   if (window.PWStorage?.setTheme) window.PWStorage.setTheme(next);
   else localStorage.setItem('pw-theme', next);
   paintThemeButton();
+});
+document.getElementById('settingsBtn')?.addEventListener('click', () => {
+  document.getElementById('siteSettings')?.showModal();
 });
 
 /* ---------------- Syntax highlighting (lightweight) ---------------- */
@@ -1568,28 +1696,13 @@ function renderSectionMcqs() {
 
 renderSectionMcqs();
 
-/* ---------------- Search (prebuilt MiniSearch — file:// safe) ---------------- */
-function loadMiniSearch() {
-  const payload = window.SEARCH_INDEX;
-  if (!payload?.index || typeof MiniSearch === 'undefined') return null;
-  try {
-    return MiniSearch.loadJS(payload.index, payload.options || {
-      fields: ['title', 'body', 'nav'],
-      storeFields: ['title', 'nav', 'target', 'kind'],
-    });
-  } catch (err) {
-    console.warn('SEARCH_INDEX failed to load', err);
-    return null;
-  }
-}
-
-const miniSearch = loadMiniSearch();
-window.PWMiniSearch = miniSearch;
+/* ---------------- Search (prebuilt MiniSearch — lazy-loaded index) ---------------- */
+window.PWMiniSearch = window.PWMiniSearch || null;
 window.PW_STUDY_ITEMS = STUDY_ITEMS;
 
 renderStudyChecklist();
 renderPlayground();
-renderMiniapps();
+// Miniapps data is lazy-loaded on first visit to #miniapps
 renderElementsHub();
 renderXpathSection();
 renderMistakesSection();
@@ -1618,12 +1731,12 @@ function runSearch(q) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  if (!miniSearch) {
-    searchResults.innerHTML = `<div class="card">Search index unavailable. Open via <code class="inline">index.html</code> with <code class="inline">search-index.js</code> present, or run <code class="inline">npm run build:content</code>.</div>`;
+  if (!window.PWMiniSearch) {
+    searchResults.innerHTML = `<div class="card">Search index unavailable. Open search with <span class="kbd">Ctrl K</span> to load it, or run <code class="inline">npm run build:content</code>.</div>`;
     return;
   }
 
-  const hits = miniSearch.search(query, {
+  const hits = window.PWMiniSearch.search(query, {
     boost: { title: 4, nav: 2, body: 1 },
     fuzzy: 0.15,
     prefix: true,
@@ -1680,7 +1793,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     searchInput.value = ''; runSearch(''); searchInput.blur();
-    helpDialog?.open && helpDialog.close();
+    if (helpDialog?.open) helpDialog.close();
   }
   if (e.key === '?' && !e.ctrlKey && !e.metaKey && !isEditableTarget(e.target)) {
     e.preventDefault();

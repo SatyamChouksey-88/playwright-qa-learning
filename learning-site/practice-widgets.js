@@ -298,7 +298,7 @@
     },
 
     'pg-iframe'(host) {
-      const inner = encodeURIComponent('<!doctype html><button id="ok">OK</button><script>document.getElementById("ok").onclick=()=>parent.postMessage("iframe-ok","*")<\/script>');
+      const inner = encodeURIComponent('<!doctype html><button id="ok">OK</button><script>document.getElementById("ok").onclick=()=>parent.postMessage("iframe-ok","*")</script>');
       host.appendChild(el(`<div class="pw-app">
         <iframe title="Practice frame" src="data:text/html;charset=utf-8,${inner}" style="width:100%;height:80px;border:1px solid var(--border);border-radius:8px;background:#fff"></iframe>
       </div>`));
@@ -554,7 +554,7 @@
         w.document.open();
         w.document.write('<!doctype html><title>Pop-Up</title><body style="font-family:system-ui;padding:20px">');
         w.document.write('<h2>Pop-up window</h2><button id="ok">Click me</button>');
-        w.document.write('<script>document.getElementById("ok").onclick=function(){try{opener.postMessage("popup-done","*")}catch(e){} window.close()}<\/script>');
+        w.document.write('<script>document.getElementById("ok").onclick=function(){try{opener.postMessage("popup-done","*")}catch(e){} window.close()}</script>');
         w.document.write('</body>');
         w.document.close();
         status(host, 'Pop-up opened — click button inside', true);
@@ -571,7 +571,7 @@
     },
 
     'ma-nested-iframe'(host) {
-      const innerDoc = `<button id="go">Click me</button><script>document.getElementById('go').onclick=()=>parent.parent.postMessage('nested-ok','*')<\/script>`;
+      const innerDoc = `<button id="go">Click me</button><script>document.getElementById('go').onclick=()=>parent.parent.postMessage('nested-ok','*')</script>`;
       const outerDoc = `<iframe name="inner" title="inner" srcdoc="${innerDoc.replace(/"/g, '&quot;')}" style="width:90%;height:70px;border:1px solid #ccc"></iframe>`;
       host.appendChild(el(`<div class="pw-app">
         <iframe name="outer" title="outer" srcdoc="${outerDoc.replace(/"/g, '&quot;')}" style="width:100%;height:110px;border:1px solid var(--border);border-radius:8px;background:#fff"></iframe>
@@ -845,7 +845,7 @@
           const t=document.getElementById('t');
           const m=document.getElementById('msg');
           setInterval(()=>{s--; if(s<0)s=0; t.textContent=s; if(s===0)m.textContent='The journey is over';},1000);
-        <\/script></body></html>`;
+        </script></body></html>`;
       host.appendChild(el(`<div class="pw-app">
         <iframe title="Countdown frame" srcdoc="${doc.replace(/"/g, '&quot;')}" style="width:100%;height:100px;border:1px solid var(--border);border-radius:8px;background:#fff"></iframe>
         <p class="pw-hint">Assert ~53s remaining, then final message.</p>

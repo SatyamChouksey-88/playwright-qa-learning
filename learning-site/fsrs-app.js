@@ -148,6 +148,18 @@
   function answerFor(card) {
     if (!card?.id) return null;
     const [kind, rawId] = String(card.id).split(':');
+    if (kind === 'mcq') {
+      const pool = window.MOCK_EXAM_POOL || [];
+      const q = pool.find((x) => x.id === rawId);
+      if (q) {
+        return {
+          ideal: q.explanation || q.options?.[q.answerIndex] || '',
+          a: q.explanation || '',
+        };
+      }
+      if (card.explanation) return { ideal: card.explanation, a: card.explanation };
+      return null;
+    }
     const pools = [];
     if (kind === 'interview' && window.INTERVIEW_DATA) {
       for (const key of ['tierA', 'tierB', 'tierC', 'tierD']) {
@@ -188,7 +200,7 @@
     empty.hidden = true;
     grades.hidden = false;
     title.textContent = current.title || current.id;
-    if (kind) kind.textContent = current.kind === 'essentials' ? 'Interview essentials' : 'Interview bank';
+    if (kind) kind.textContent = current.kind === 'essentials' ? 'Interview essentials' : current.kind === 'mcq' ? 'Mock exam MCQ' : 'Interview bank';
     meta.textContent = `Reps ${current.reps || 0} · lapses ${current.lapses || 0}` +
       (current.stability ? ` · stability ${Number(current.stability).toFixed(1)}d` : ' · new card');
 
@@ -274,8 +286,26 @@
     for (const c of data.cards) await putCard(c);
   }
 
+  /** Seed an FSRS card from a missed mock-exam / skills MCQ (idempotent). */
+  async function ensureMcqCard({ id, title, explanation, target, topic }) {
+    const api = getFsrsApi();
+    if (!api || !id) return;
+    const cardId = `mcq:${id}`;
+    const existing = await getAllCards();
+    if (existing.some((c) => c.id === cardId)) return;
+    await putCard({
+      ...createEmptyCard(api, cardId),
+      title: title || id,
+      target: target || 'skills',
+      kind: 'mcq',
+      topic: topic || '',
+      explanation: explanation || '',
+    });
+  }
+
   window.FSRSApp = {
     getCards: getAllCards,
+    ensureMcqCard,
     async mount(host) {
       if (!host) return;
       const api = getFsrsApi();

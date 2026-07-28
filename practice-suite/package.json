@@ -17,11 +17,20 @@
     "test:tables": "playwright test tests/table-and-sorting",
     "test:frames": "playwright test tests/frame-switch",
     "report": "playwright show-report",
-    "test:bank-demo": "playwright test --project=bank-demo",
-    "test:external": "playwright test --project=chromium-external"
+    "test:bank-demo": "playwright test --project=bank-demo --project=setup --project=bank-demo-authed",
+    "test:external": "playwright test --project=chromium-external",
+    "test:smoke": "playwright test --project=bank-demo --project=setup --project=bank-demo-authed --grep @smoke",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint -c ../eslint.config.mjs .",
+    "exercise": "playwright test -c exercises/playwright.config.ts",
+    "exercise:interviewer": "playwright test -c exercises/interviewer/playwright.config.ts",
+    "exercise:skills": "playwright test -c exercises/skills/playwright.config.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
     "@playwright/test": "^1.62.0",
-    "@types/node": "^22.13.10"
+    "@types/node": "^22.13.10",
+    "serve": "^14.2.4",
+    "typescript": "^5.8.2"
   }
 }

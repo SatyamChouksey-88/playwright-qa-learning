@@ -32,12 +32,12 @@ test('@external The Internet — sort Example 1 table by Last Name', async ({ pa
       isSorted(names, 'desc') ||
       names.join('|') !== before.join('|')
     );
-  }).toBeTruthy();
+  }).toBe(true);
 
   const mid = (await cells.allTextContents()).map((n) => n.trim());
   await lastNameHeader.click();
   await expect.poll(async () => {
     const after = (await cells.allTextContents()).map((n) => n.trim());
     return after.join('|') !== mid.join('|');
-  }).toBeTruthy();
+  }).toBe(true);
 });

@@ -1,0 +1,384 @@
+# Production failure case studies
+
+Ten stories, in the format described in `_templates.md`. Each links to at least two related Stuck-hub entries — read the story, then go deep on the specific mechanism via the linked entries.
+
+## The night 400 tests went red after a browser update
+
+id: case-browser-update-400-red
+### Situation
+A routine `npx playwright install` bump landed in `package.json` alongside an unrelated feature PR. The next morning, the nightly cross-browser run showed 400+ failures across the WebKit project specifically, with Chromium and Firefox unaffected.
+
+### Impact
+The nightly `@external` sharded run — the only signal covering the full third-party practice-site surface — was red for three consecutive nights before anyone traced it to the browser bump, during which two real regressions in unrelated PRs went unnoticed because "the suite is already red" had become the team's working assumption.
+
+### Investigation
+The on-call engineer opened the merged HTML report and noticed every failure was WebKit-only, all failing at slightly different steps with no obvious shared code path — ruling out a single test-code bug. Diffing `package.json` across the last week of merges surfaced the Playwright version bump. Cross-referencing the release notes for that version showed a documented change to WebKit's default `strict` locator matching for a specific ARIA role mapping.
+
+### Root cause
+A browser engine update changed how WebKit exposed accessible names for a handful of custom-styled buttons, causing `getByRole('button', { name: '...' })` locators that matched on exact accessible name to stop matching — a legitimate upstream behavior fix, not a bug in the test suite or the app.
+
+### Fix
+```ts
+// Before: relied on an accessible name string that WebKit now computes differently
+await page.getByRole('button', { name: 'Submit order' }).click();
+
+// After: use a stable data-testid for the handful of affected custom controls,
+// reserving accessible-name matching for standard, unstyled controls.
+await page.getByTestId('submit-order-btn').click();
+```
+
+### What we changed permanently
+Added a required manual step to the browser-version-bump checklist: run the full cross-browser project locally and read the *diff* of newly-failing tests before merging, not just "does it install." Pinned the exact Playwright version in both `package.json` and CI, upgraded deliberately on a schedule rather than via an incidental dependency bump.
+
+### Interview question this becomes
+"A routine Playwright version bump caused a wave of WebKit-only failures — how do you triage and what would you change going forward?" Senior answer: check whether failures cluster by browser project (points at an engine-level behavior change, not a broad regression), read the release notes for the exact version delta, and add a deliberate cross-browser smoke check to the upgrade process itself.
+
+### Related
+stuck-parallel-ci-passes-locally-fails-ci, stuck-parallel-ci-retries-hiding-bugs
+
+---
+
+## Green trace, red CI
+
+id: case-green-trace-red-ci
+### Situation
+A checkout test failed in CI. The engineer downloaded the trace artifact, opened it locally, and it showed... a completely successful run — every action highlighted green, final assertion passing.
+
+### Impact
+Two days were spent assuming the CI failure must be a Playwright reporting bug, escalating internally, before anyone questioned whether the downloaded trace actually corresponded to the failed attempt.
+
+### Investigation
+Re-reading the CI job's log line by line (not just the summary) revealed the test had `retries: 2` configured, had failed on attempts 1 and 2, and passed on attempt 3 — and the artifact-upload step was configured to upload only the *last* attempt's trace, which was the passing one. The "green trace" was real, just not the trace of the failure that made the build red.
+
+### Root cause
+A CI reporting configuration gap: the workflow uploaded only the final attempt's artifacts, so a genuinely deterministic first-attempt failure (masked by retries into an eventual pass at the job level, but still causing the job to be marked failed for other reasons — in this case a separate assertion at the suite level counting total retry attempts) had no matching trace to actually investigate.
+
+### Fix
+```ts
+// playwright.config.ts — capture and retain traces for every attempt, not just the last.
+export default defineConfig({
+  retries: 2,
+  use: { trace: 'on-first-retry' }, // captures from the first failing attempt onward
+  reporter: [['blob'], ['html', { open: 'never' }]],
+});
+```
+```yaml
+# Upload the FULL playwright-report/ and test-results/ trees (all attempts),
+# not a hand-picked "last attempt only" artifact.
+- uses: actions/upload-artifact@v4
+  if: ${{ !cancelled() }}
+  with: { name: playwright-report, path: playwright-report/ }
+```
+
+### What we changed permanently
+Standardized on `trace: 'on-first-retry'` (captures the failing attempt specifically, not just whichever attempt happens to be last) and switched artifact upload to the full report directory so every attempt's trace is available, with the HTML report clearly labeling which attempt each trace belongs to.
+
+### Interview question this becomes
+"You open a trace for a CI failure and it shows a fully passing run — what's happening?" Senior answer: check whether retries are configured and whether the CI artifact upload is only capturing the last (possibly passing) attempt — the trace that matters is the *first* failing attempt's, which needs `trace: 'on-first-retry'` and a full-report artifact upload to actually exist.
+
+### Related
+stuck-parallel-ci-artifact-upload-failed-runs, stuck-parallel-ci-retries-hiding-bugs
+
+---
+
+## One locator broke checkout
+
+id: case-one-locator-broke-checkout
+### Situation
+A design system update renamed a CSS-in-JS class on the "Place order" button as part of an unrelated visual tweak. The button's accessible role and text didn't change at all.
+
+### Impact
+Exactly one test — the full checkout E2E flow, the single most business-critical path in the suite — started failing. Because it was "only one test" among hundreds, it was initially triaged as low priority and sat red for a full sprint while the team focused on other work, unaware it was the one test actually protecting revenue-critical functionality.
+
+### Investigation
+When someone finally opened the trace, the DOM snapshot showed the button rendering fine, but the locator (a leftover `.css-8f3k2p` class selector from an early, pre-`getByRole` era of the suite) simply didn't match anymore. Grepping the suite for other CSS-class-based locators found six more, none yet broken only because their generated classes hadn't happened to change yet.
+
+### Root cause
+A CSS-in-JS-generated class name — inherently unstable across builds — was used as a locator instead of a role/label/testid-based one, so a purely cosmetic, unrelated change silently broke test coverage of the most important flow in the app.
+
+### Fix
+```ts
+// Before: brittle, tied to a build-generated class
+await page.locator('.css-8f3k2p').click();
+
+// After: stable across any visual/styling change
+await page.getByRole('button', { name: 'Place order' }).click();
+```
+
+### What we changed permanently
+Added an ESLint rule (`playwright/no-raw-locators`-style custom check) flagging any `page.locator()` call using a selector matching a CSS-in-JS hash pattern, and did a one-time sweep converting all six remaining offenders to role-based locators. Made "the checkout E2E test is red" a page-the-on-call-immediately condition given its business criticality, regardless of how many *other* tests are also failing that day.
+
+### Interview question this becomes
+"A single locator using a CSS-in-JS class name broke your most critical E2E test after an unrelated styling change — how do you prevent this class of bug?" Senior answer: default to role/label/testid-based locators everywhere (never generated class names), add a lint rule to catch new violations, and treat business-critical flow failures as a different priority tier than the rest of the suite.
+
+### Related
+stuck-locators-dynamic-class-names, stuck-locators-strict-mode-two-matches
+
+---
+
+## Auth changed overnight
+
+id: case-auth-changed-overnight
+### Situation
+The identity provider the app used for SSO pushed a backend change overnight (outside the team's control) that altered the exact shape of the post-login redirect URL.
+
+### Impact
+Every test in the `setup` project (the shared authentication step every other test depended on via `storageState`) failed starting with the first CI run of the day, cascading into effectively 100% of the suite showing as failed, even though only the login step itself was actually affected.
+
+### Investigation
+The on-call engineer initially assumed a broad, catastrophic app regression given the failure percentage, until noticing every failure's stack trace bottomed out in the exact same `setup/auth.setup.ts` line — a `page.waitForURL('**/dashboard')` call that never resolved. The actual redirect landed on `/dashboard?session=new` — a URL the glob pattern didn't match — rather than never redirecting at all.
+
+### Root cause
+A third-party IdP added a new query parameter to its post-login redirect with no changelog or advance notice reaching the team, and the setup project's URL-matching pattern was more specific than it needed to be, treating an additive, backward-compatible-in-intent change as a hard failure.
+
+### Fix
+```ts
+// Before: over-specific match that breaks on any additional query param
+await page.waitForURL('**/dashboard');
+
+// After: match on path, tolerant of additive query params
+await page.waitForURL((url) => url.pathname.endsWith('/dashboard'));
+```
+
+### What we changed permanently
+Made the `setup` project's failure produce a distinctly different CI annotation ("AUTH SETUP FAILED — check IdP status before assuming a broad app regression") so a 100%-failure day is immediately recognizable as a single-point-of-failure issue, not treated as equally mysterious as a real widespread regression. Subscribed to the IdP's status/changelog feed.
+
+### Interview question this becomes
+"Your entire suite goes from green to 100% failing overnight with no deploy on your side — what's your first hypothesis?" Senior answer: check the single shared setup/auth step first, since a near-100% failure rate with no code change on your side is the signature of one upstream dependency (often auth) breaking, not a broad, mysterious regression — make that failure mode loudly distinguishable in CI output.
+
+### Related
+stuck-login-auth-sso-redirect-loop, stuck-login-auth-storage-expired
+
+---
+
+## Parallel execution ate our test data
+
+id: case-parallel-ate-test-data
+### Situation
+A new set of account-management tests was added, all using a hardcoded test account name (`"QA Test Account"`) that had "always worked fine" in the original author's local runs.
+
+### Impact
+Once merged into the full parallel CI suite, roughly one in six runs showed a bizarre mix of failures: an account rename test seeing a balance from a completely different test, a deletion test failing because the account was "already deleted" by another worker moments earlier. The failures were different every time, which made them initially look like unrelated, unconnected flakiness across several test files.
+
+### Investigation
+Someone finally noticed all the affected tests shared the literal string `"QA Test Account"`. Re-running with `--workers=1` made every failure disappear immediately — the clearest possible signal of a parallel-execution data race rather than several independent bugs.
+
+### Root cause
+Multiple parallel workers were creating, mutating, and deleting the *same* named account simultaneously, with no test-level isolation — each worker believed it "owned" that account for the duration of its own test, but the account was a shared, mutable resource with real concurrent writers.
+
+### Fix
+```ts
+import { randomUUID } from 'node:crypto';
+
+test('renames its own uniquely-named account', async ({ page }, testInfo) => {
+  const accountName = `QA-${testInfo.workerIndex}-${randomUUID().slice(0, 8)}`;
+  await page.getByLabel('Account name').fill(accountName);
+  await page.getByRole('button', { name: 'Create' }).click();
+  await expect(page.getByText(accountName)).toBeVisible();
+});
+```
+
+### What we changed permanently
+Added a code-review checklist item specifically for "does this test create/mutate data using a shared, non-unique identifier?" and retrofitted every existing hardcoded test-data string across the suite to a worker-index + UUID pattern via a shared fixture, closing off the whole class of bug rather than just the one report.
+
+### Interview question this becomes
+"New tests pass individually but cause seemingly random failures elsewhere once merged into the parallel suite — how do you find the connection?" Senior answer: look for a shared, non-unique data identifier across the failing tests, and confirm with `--workers=1` (failures should disappear) — this is a data-isolation bug, not several unrelated flakes, and the fix is unique-per-test identifiers, not serialization.
+
+### Related
+stuck-files-data-worker-data-collision, stuck-parallel-ci-worker-race-shared-user
+
+---
+
+## The ad overlay that forced force:true
+
+id: case-ad-overlay-force-true
+### Situation
+A third-party ad network was integrated into the practice site's free-tier pages. Shortly after, several unrelated interaction tests on those pages started intermittently timing out on ordinary clicks.
+
+### Impact
+Under schedule pressure to unblock a release, an engineer added `{ force: true }` to the failing clicks as a quick fix. The tests went green immediately. Two months later, product reported that real users were complaining a "Continue" button "didn't work" on that exact page — the force-true tests had been silently passing while masking a genuine, user-facing bug the whole time.
+
+### Investigation
+When the real bug was reported, someone opened the same test's trace and, this time, actually looked at the screenshot at the click moment (rather than trusting the green checkmark) — a barely-visible ad overlay iframe sat directly on top of the "Continue" button for roughly two seconds during ad-load, exactly matching what real users described.
+
+### Root cause
+`force: true` bypasses Playwright's actionability check that an element isn't covered by something else — the exact check that would have caught this overlay-covering-the-button bug the very first time it appeared, months before a real user ever hit it.
+
+### Fix
+```ts
+// Before: forced through the actionability check, hiding a real overlay bug
+await page.getByRole('button', { name: 'Continue' }).click({ force: true });
+
+// After: dismiss (or wait out) the actual blocking element, matching what a
+// real user has to do, and let the actionability check do its job.
+await page.getByTestId('ad-overlay-close').click().catch(() => {});
+await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible();
+await page.getByRole('button', { name: 'Continue' }).click();
+```
+
+### What we changed permanently
+Banned `force: true` from the codebase via an ESLint rule (`playwright/no-force-option`) with no exceptions without an explicit, reviewed comment justifying the rare legitimate case, and added a lint-CI gate specifically for it. Filed and fixed the actual ad-overlay z-index/timing bug with the ads team.
+
+### Interview question this becomes
+"Why is `force: true` considered dangerous, with a real example?" Senior answer: it bypasses the exact actionability checks (visibility, not-covered-by-another-element) that exist to catch real interaction bugs — using it to "fix" a timeout can silently convert a genuine, user-facing bug report into a permanently green, false-negative test.
+
+### Related
+stuck-locators-hidden-vs-visible, stuck-waits-timing-animation-covered-click
+
+---
+
+## Baseline images vs. the Linux container
+
+id: case-baseline-vs-linux-container
+### Situation
+A developer added visual regression coverage for the dashboard, generating baseline screenshots on their MacBook and committing them alongside the feature PR.
+
+### Impact
+The PR's own CI run failed immediately on the newly-added visual tests — before the feature had even shipped, before any real regression could exist — eroding the team's trust that visual tests were worth the trouble at all ("they're broken from day one").
+
+### Investigation
+Comparing the failing CI screenshot against the committed baseline side by side showed nearly identical layouts with a subtle but consistent difference concentrated entirely around text rendering — a font-rendering signature, not a layout bug.
+
+### Root cause
+The baseline was captured on macOS, which renders the app's font stack differently at the pixel level (anti-aliasing, hinting, and potentially a different fallback font entirely) than the Linux-based Docker image the CI pipeline uses for comparison — a fundamentally environment-mismatched baseline from the moment it was committed.
+
+### Fix
+```bash
+# Regenerate the baseline from inside the exact image CI uses to compare.
+docker run --rm -v $PWD:/work -w /work mcr.microsoft.com/playwright:v1.55.0-jammy \
+  npx playwright test dashboard.spec.ts --update-snapshots
+```
+```ts
+// playwright.config.ts — absorb minor anti-aliasing noise deliberately, without
+// hiding real regressions.
+export default defineConfig({ expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.02 } } });
+```
+
+### What we changed permanently
+Added a documented, one-command "regenerate baselines" script that always runs inside the CI Docker image (never bare on a host machine), referenced directly from the PR template's checklist for any change touching visual tests, plus a small default pixel-diff tolerance.
+
+### Interview question this becomes
+"A newly-added visual test fails on its very first CI run — what's the most likely explanation?" Senior answer: the baseline was almost certainly captured on a different OS than the one CI renders and compares against; baselines must always be generated inside the same Docker image used for comparison, with a small explicit diff tolerance for legitimate anti-aliasing noise.
+
+### Related
+stuck-parallel-ci-docker-font-rendering, stuck-flaky-debug-baseline-mac-vs-linux
+
+---
+
+## The service worker that swallowed our mocks
+
+id: case-service-worker-swallowed-mocks
+### Situation
+The learning site added an offline-capable service worker for PWA support. Around the same time, a batch of `page.route()`-based network-mocking tests targeting the same pages started silently returning real (not mocked) data.
+
+### Impact
+Several tests kept passing — but for the wrong reason: they were asserting against whatever the real API happened to return that day rather than the specific mocked scenario each was designed to exercise (an empty state, an error state, a specific edge-case payload) — turning deliberate, deterministic tests into accidental, undetected integration tests with no one aware the coverage had silently changed character.
+
+### Investigation
+The bug surfaced only when someone changed a mock to simulate a new error state and the test kept showing the *old*, successful UI — impossible if the mock were actually taking effect. Instrumenting the route handler with a log line showed it was never being called at all for the affected pages, despite matching the exact right URL pattern.
+
+### Root cause
+The newly-added service worker intercepted and served cached responses for those exact API paths before Playwright's `page.route()` layer ever saw the request, on a browser context that hadn't been configured to block service workers.
+
+### Fix
+```ts
+// playwright.config.ts — block service workers by default for tests requiring
+// precise network control; opt specific offline/PWA-behavior tests back in.
+export default defineConfig({
+  use: { serviceWorkers: 'block' },
+  projects: [
+    { name: 'default', use: { serviceWorkers: 'block' } },
+    { name: 'pwa-offline', testMatch: /offline\.spec\.ts/, use: { serviceWorkers: 'allow' } },
+  ],
+});
+```
+
+### What we changed permanently
+Documented the service-worker/route-mocking interaction explicitly in the practice suite's README, set `serviceWorkers: 'block'` as the project-wide default, and created one deliberately-scoped `pwa-offline` project (with `serviceWorkers: 'allow'`) specifically for testing the offline/caching behavior itself.
+
+### Interview question this becomes
+"Your route mocks silently stopped working after the app added a service worker — why, and how do you fix it going forward?" Senior answer: a service worker can intercept and serve cached/network responses before Playwright's own route-interception layer sees them; use the `serviceWorkers: 'block'` context option for tests needing precise network control, and opt back in only for dedicated offline-behavior tests.
+
+### Related
+stuck-network-api-route-not-intercepting, stuck-network-api-mock-json-correctly
+
+---
+
+## Storage state committed to git
+
+id: case-storage-state-committed-to-git
+### Situation
+To "make onboarding easier," a contributor committed a working `playwright/.auth/user.json` `storageState` file directly into the repository so new team members wouldn't need to run the login setup step themselves.
+
+### Impact
+Weeks later, a routine dependency-scanning tool flagged the committed file as containing what looked like a live session token. Because the token had a long TTL and the account was a real (if low-privilege) staging account, this required an emergency credential rotation and a security review of git history, not just a quiet file deletion — a `storageState` file is, functionally, a serialized session, no different in sensitivity from a password.
+
+### Investigation
+Git history showed the file had been present (and periodically re-committed with refreshed tokens by well-meaning contributors "fixing" expired-auth failures) for several months, meaning the exposure window for anyone with repo read access was significant, and history-rewriting became necessary since deleting the file in a new commit doesn't remove it from history.
+
+### Root cause
+No `.gitignore` entry existed for the auth-state directory, and nothing in CI or code review flagged a committed session artifact as a secret — the team's mental model treated `storageState` as "just test setup output," not as sensitive as a plaintext password, even though it functionally grants the same access.
+
+### Fix
+```gitignore
+# .gitignore
+playwright/.auth/
+.env
+```
+```ts
+// setup/auth.setup.ts — regenerated fresh on every run, never committed.
+setup('authenticate', async ({ page }) => {
+  await page.goto('/login');
+  // ...log in...
+  await page.context().storageState({ path: 'playwright/.auth/user.json' });
+});
+```
+
+### What we changed permanently
+Added `playwright/.auth/` and `.env` to `.gitignore` (and to the secret-scanning tool's explicit watch patterns, so a future accidental commit is caught automatically before merge), rotated the exposed credential, and added an explicit note in `CONTRIBUTING.md` that `storageState` files are session credentials and must never be committed.
+
+### Interview question this becomes
+"Should a `storageState.json` file ever be committed to source control?" Senior answer: no — it's a serialized live session, equivalent in sensitivity to a password or token; it must be `.gitignore`d, regenerated per-run (or per-environment) via a setup project, and treated by secret-scanning tooling the same as any other credential.
+
+### Related
+stuck-login-auth-storage-expired, stuck-network-api-401-only-ci
+
+---
+
+## Retry:2 hid a real production bug
+
+id: case-retries-hid-production-bug
+### Situation
+A checkout test began needing its second retry attempt to pass, consistently, on every single CI run — but since `retries: 2` was configured suite-wide and the job showed green, no one investigated.
+
+### Impact
+Three weeks later, a support ticket surfaced: a small percentage of real users' first checkout attempt after adding a promo code silently failed to apply the discount, requiring a page refresh and a second attempt to work — the exact same first-attempt failure the test had been hitting and quietly retrying past the whole time.
+
+### Investigation
+Once support connected the dots, engineers ran `tools/flake-report.mjs` against three months of CI history and found the checkout test had needed exactly one retry on effectively every run in that window — a 100% first-attempt failure rate hiding behind a 100% green final status. The trace of a first attempt (captured via `trace: 'on-first-retry'`) showed the promo-code API call racing ahead of a not-yet-initialized cart-session ID on cold page loads specifically.
+
+### Root cause
+A real, deterministic race condition in the app's checkout initialization — reproducible on essentially every cold load — was masked at the test level by retries absorbing the first-attempt failure, so the exact same bug real users experienced was "passing" in CI the entire time.
+
+### Fix
+```ts
+// Test change: assert the real precondition instead of accepting a passing
+// retry as good enough — this makes the flake visible again, on purpose.
+await expect(page.getByTestId('cart-session-ready')).toBeVisible();
+await page.getByLabel('Promo code').fill('SAVE10');
+await page.getByRole('button', { name: 'Apply' }).click();
+await expect(page.getByText('Discount applied')).toBeVisible();
+```
+```ts
+// App-side fix (the actual bug): don't allow the promo-code call to fire
+// before the cart session is confirmed initialized.
+```
+
+### What we changed permanently
+Adopted a standing policy: any test needing a retry on more than 5% of runs (tracked via `flake-report.mjs` in CI) opens an automatic, non-optional bug ticket rather than being left as an accepted retry statistic — treating consistent retry-need as a first-class signal equal in importance to an outright failure.
+
+### Interview question this becomes
+"How can a green CI dashboard hide a real, user-facing production bug?" Senior answer: if a test consistently needs a retry to pass, it's failing deterministically on attempt one every time — retries can make the *job* green while the exact same first-attempt bug ships to production; monitor retry rates as a signal in their own right, not just final pass/fail.
+
+### Related
+stuck-parallel-ci-retries-hiding-bugs, stuck-flaky-debug-green-nine-of-ten

@@ -187,10 +187,25 @@ await page.goto('/dashboard');
 await expect(page.getByTestId('balance')).toContainText('1,000');</code></pre>
       <p class="lead">Close code <strong>1000</strong> = normal close. <strong>1006</strong> = abnormal (connection dropped). Mentioning that shows depth without CDP trivia.</p>
 
+      <h3 class="sub">Frame assertion pattern tied to Bank Demo's live balance</h3>
+      <pre data-lang="typescript"><code>const frames: unknown[] = [];
+await page.routeWebSocket('**/bank-live', (ws) => {
+  ws.onMessage((msg) => {
+    frames.push(JSON.parse(String(msg)));
+    ws.send(msg); // pass through unchanged
+  });
+});
+await page.goto('/index.html#bank-demo');
+// … trigger a balance-changing action …
+await expect(page.getByTestId('checking-balance')).toContainText('4,250');
+expect(frames.some((f: any) => f.type === 'balance-update')).toBe(true);</code></pre>
+      <p class="lead">Assert the <strong>UI</strong> as the primary signal (that's what the user sees); assert on captured frames only as a secondary check that the right message <em>type</em> actually flowed, not to hand-verify every byte on the wire.</p>
+
       <div class="card warn"><strong>Common mistakes</strong>
         <ul class="tight">
           <li>Attaching the listener after navigation (miss the handshake).</li>
           <li>Sleeping until the UI “probably” updated.</li>
+          <li>Asserting on wire frames alone with no corresponding UI assertion.</li>
         </ul>
       </div>
       <div class="card good"><strong>Practice:</strong> Bank Demo balance mock path — assert UI, not the wire protocol.</div>
@@ -229,13 +244,40 @@ await expect(page.getByTestId('balance')).toContainText('1,000');</code></pre>
       <p class="lead"><strong>Consumer-driven contract</strong> = the UI (consumer) publishes the requests/responses it needs; the API (provider) proves it still meets that contract. That catches breaking API changes early, without a full browser.</p>
       <p class="lead">Strong stack answer: <strong>API + Pact + WireMock/Testcontainers + thin Playwright journeys</strong> for checkout/login. For message queues: test publisher and consumer separately; only then assert the UI after the side effect lands.</p>
 
+      <h3 class="sub">Pact-style consumer/provider sketch</h3>
+      <pre data-lang="typescript"><code>// consumer test (runs in the UI repo) — records an interaction
+await provider.addInteraction({
+  state: 'account apex_user exists',
+  uponReceiving: 'a request for the balance',
+  withRequest: { method: 'GET', path: '/api/bank/balance' },
+  willRespondWith: { status: 200, body: { checking: 4250, savings: 18400 } },
+});
+// … call the real client against the Pact mock server, assert the UI renders it …
+await provider.verify(); // writes a pact.json contract file
+
+// provider verification (runs in the API repo, in CI) — replays every recorded
+// interaction against the real API and fails the build if the shape drifted
+new Verifier({ provider: 'bank-api', pactUrls: ['./pacts/ui-bank-api.json'] }).verifyProvider();</code></pre>
+      <p class="lead">The contract file is the artifact both teams agree to — a broken contract fails the <em>provider's</em> CI before the change ever reaches a shared staging environment, which is the whole point (catches PF9-style "works in dev, 500s in staging" drift earlier).</p>
+
+      <h3 class="sub">GraphQL query/mutation testing notes</h3>
+      <p class="lead">Mock at the network layer with <code class="inline">page.route('**/graphql', …)</code> and match on the request body's <code class="inline">operationName</code> (not just the URL — every GraphQL call hits the same endpoint). For contract-style coverage, validate responses against the schema (e.g. via a codegen'd TypeScript type) rather than hand-checking individual fields.</p>
+      <pre data-lang="typescript"><code>await page.route('**/graphql', async (route) => {
+  const body = route.request().postDataJSON();
+  if (body.operationName === 'GetBalance') {
+    return route.fulfill({ json: { data: { balance: { checking: 4250 } } } });
+  }
+  return route.continue();
+});</code></pre>
+
       <div class="card warn"><strong>Common mistakes</strong>
         <ul class="tight">
           <li>Only E2E across every service (ice-cream cone).</li>
           <li>Mocking so hard that the real request shape is never checked.</li>
+          <li>Matching GraphQL routes by URL alone and mocking the wrong operation.</li>
         </ul>
       </div>
-      <div class="card good"><strong>Related Q:</strong> Tier C “microservices architecture” and Tier D governance questions.</div>
+      <div class="card good"><strong>Related Q:</strong> Tier C “microservices architecture” and Tier D governance questions; see also <a href="interview/15-contract-and-realtime.md" target="_blank" rel="noopener">interview-qa contract &amp; real-time notes</a> if present.</div>
     `,
   },
   {
@@ -439,6 +481,146 @@ await expect(page.getByTestId('balance')).toContainText('1,000');</code></pre>
       <p class="lead"><strong>After this section you can</strong> structure a bug report and compute simple quality metrics.</p>
       <div data-gap-widget="metrics"></div>
       <div data-gap-widget="bugreport"></div>
+    `,
+  },
+  {
+    id: 'production-failures',
+    nav: 'Production failure war room',
+    title: 'Production failure war room',
+    html: `
+      <h2 class="sec">Production failure war room</h2>
+      <p class="lead"><strong>After this section you can</strong> answer "the pager went off, walk me through it" with the same shape every time: Symptom → Investigation → Root cause → Fix → Prevention.</p>
+      <div class="card note"><strong>Why interviewers ask:</strong> Senior/Lead loops grade your <em>order of operations</em>, not just the final answer. Source: <a href="interview/09-production-failures.md" target="_blank" rel="noopener">interview-qa/09-production-failures.md</a> (14 full write-ups).</div>
+
+      <div class="card" style="margin-bottom:10px"><strong>PF1 — Login fails only right after a deploy.</strong> Reproduce manually first (product bug vs test bug); diff cookie/CSRF/redirect changes; re-record storageState. Related: A9, B27, C21.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF2 — CAPTCHA appears only in CI.</strong> Compare CI's shared IP reputation and headless signals vs local; get a test-mode CAPTCHA site key wired into CI secrets — never solve real CAPTCHAs programmatically.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF3 — Token expires mid-suite.</strong> Check token TTL vs suite runtime; refresh via API in a fixture rather than re-logging in through the UI; treat expiry as its own tested case, not an incident.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF4 — Download works locally, fails in Jenkins.</strong> Headless download-behavior differences, missing <code class="inline">acceptDownloads</code>, or a sandboxed download directory Jenkins can't write to.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF5 — Parallel workers collide on shared staging.</strong> Two workers mutate the same account/row; fix with per-worker data factories or API-seeded unique accounts, not serial execution.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF6 — Random timeouts after a deployment.</strong> New middleware/edge added latency under load that a fixed <code class="inline">actionTimeout</code> no longer covers — check p95 response time, not just "does it eventually load."</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF7 — Shadow DOM breaks after a library upgrade.</strong> A component library flipped to closed shadow roots; Playwright can't pierce closed roots — request an open-mode test build or a host-level testid.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF8 — Micro-frontend locator drift.</strong> Two teams ship independently; a shared header changed under a different team's release. Fix: contract on testids across MFEs, not just within one repo.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF9 — API 500s only in staging.</strong> Staging-only feature flags, thinner staging infra, or a shared staging DB in a bad state — isolate whether it's data, config, or capacity before touching the test.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF10 — Dynamic iframe id churns every load.</strong> Stop matching on the generated id; use <code class="inline">frameLocator</code> with a stable <code class="inline">title</code>/<code class="inline">name</code> attribute or index-independent selector.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF11 — Flake wave after a browser engine update.</strong> Playwright/Chromium bump changed timing or a strict-mode edge case; bisect the Playwright version, read the release notes' behavior-change section before patching every test.</div>
+      <div class="card" style="margin-bottom:10px"><strong>PF12 — CI-provider pipeline failure (not your code).</strong> Runner image change, rate limiting, or a transient outage; distinguish from an app regression by re-running unchanged on a previous green commit first.</div>
+      <p class="lead">Full write-ups (PF13 intermittent TLS/DNS, PF14 worker OOM) and the complete Investigation/Fix/Prevention steps for every scenario above live in the source markdown linked above.</p>
+    `,
+  },
+  {
+    id: 'framework-at-scale',
+    nav: 'Framework at scale',
+    title: 'Framework design at scale',
+    html: `
+      <h2 class="sec">Framework design at scale</h2>
+      <p class="lead"><strong>After this section you can</strong> sketch a folder structure and name the 2–3 decisions that actually change between 500 and 50,000 tests — and what you deliberately do NOT build yet.</p>
+      <div class="card note">Full folder-structure blocks: <a href="interview/10-framework-at-scale.md" target="_blank" rel="noopener">interview-qa/10-framework-at-scale.md</a>. See also the <a href="#pom">framework-layers diagram</a> in POM ↔ fixtures.</div>
+
+      <h3 class="sub">FS1 — ~500 tests, one team</h3>
+      <p class="lead">Flat <code class="inline">tests/&lt;feature&gt;/</code>, fixtures-first, one CI job. Do NOT build: custom test runners, multi-repo sharing, a framework "team."</p>
+      <h3 class="sub">FS2 — ~5,000 tests, growing team</h3>
+      <p class="lead">Tags for ownership, sharded CI, a thin internal fixtures package. Do NOT build: a bespoke DSL — plain TS still wins at this size.</p>
+      <h3 class="sub">FS3 — ~50,000 tests, platform scale</h3>
+      <p class="lead">A dedicated platform team owns fixtures/reporting as a versioned internal package; flake-budget gates block merges. Do NOT build: one giant monorepo test suite with no ownership boundaries.</p>
+      <h3 class="sub">FS4–FS6 — multi-team, microservices, white-label</h3>
+      <p class="lead">Contract boundaries between teams (own your locators via shared testid conventions), per-service thin E2E instead of one cross-service suite, and tenant-config-driven specs for white-label instead of copy-pasted suites per brand.</p>
+      <div class="card warn"><strong>Interviewer signal:</strong> naming what you refuse to build at each size is the senior/lead tell — see D1/D3/D24–D28 for the underlying trade-off reasoning.</div>
+    `,
+  },
+  {
+    id: 'internals',
+    nav: 'Playwright internals',
+    title: 'Playwright internals',
+    html: `
+      <h2 class="sec">Playwright internals</h2>
+      <p class="lead"><strong>After this section you can</strong> answer "why" a second time after the textbook answer — the mechanism under auto-waiting, locators, contexts, fixtures, and traces.</p>
+      <div class="card note">Full mechanism write-ups + interview lines: <a href="interview/11-internals.md" target="_blank" rel="noopener">interview-qa/11-internals.md</a>.</div>
+
+      <h3 class="sub">PI1 — Auto-waiting & actionability</h3>
+      <p class="lead">Every action polls: attached → visible → stable (no animation) → enabled → receives-events, then dispatches a real trusted input event. <code class="inline">force: true</code> skips every check instead of fixing the reason a real click would also fail.</p>
+      <h3 class="sub">PI2 — Locator engine & strictness</h3>
+      <p class="lead">Locators are lazy queries re-evaluated on every use, not cached handles. Strict mode throws on ambiguous matches by design — an interview tell for whether you understand locators or memorized syntax.</p>
+      <h3 class="sub">PI3–PI4 — BrowserContext & worker lifecycle</h3>
+      <p class="lead">A context is an isolated profile (cookies/storage) reused across tests within a worker for speed; a worker is a whole process. Cross-worker shared state is where "flaky only in CI with parallel workers" bugs come from.</p>
+      <h3 class="sub">PI5 — Fixture execution order (LIFO teardown)</h3>
+      <p class="lead">Setup runs in dependency order; teardown (code after <code class="inline">use()</code>) runs in reverse — last fixture set up is the first torn down, same as a stack.</p>
+      <h3 class="sub">PI6–PI8 — Traces, network interception, CDP vs WebDriver</h3>
+      <p class="lead">Traces record a snapshot per action (DOM + screenshot + network) rather than a video, which is why they're small and scrubbable. <code class="inline">page.route</code> intercepts at the network layer before the browser sees the request. Playwright drives Chromium/WebKit via each engine's native protocol (CDP-like) rather than the W3C WebDriver HTTP wire protocol WebDriver-based tools use — this is why Playwright can do things like route interception and multiple contexts without a server round-trip per command.</p>
+    `,
+  },
+  {
+    id: 'debugging-artifacts-lab',
+    nav: 'Debugging artifacts lab',
+    title: 'Debugging artifacts lab',
+    html: `
+      <h2 class="sec">Debugging artifacts lab</h2>
+      <p class="lead"><strong>Goal:</strong> triage a HAR file, a raw console log, a screenshot, or a video clip — the messier artifacts a real incident hands you when nobody turned tracing on.</p>
+      <div class="card note">Full drills: <a href="interview/16-debugging-artifacts-lab.md" target="_blank" rel="noopener">interview-qa/16-debugging-artifacts-lab.md</a>. Pairs with the <a href="#trace-lab">Trace diagnosis lab</a> above.</div>
+      <ul class="tight">
+        <li><strong>DBG1–2 HAR triage:</strong> find the request contributing most to time-to-interactive; spot a request that never fired at all (blocked by CSP/ad-blocker/CORS).</li>
+        <li><strong>DBG3–4 Console triage:</strong> separate a real uncaught exception from routine warning noise; find the one line that actually explains a broken render.</li>
+        <li><strong>DBG5 Screenshot-only triage:</strong> no trace, one image — what can you still conclude (layout state, visible error text, loading spinner stuck)?</li>
+        <li><strong>DBG6 Video frame-by-frame:</strong> find the exact frame where an expected element should have appeared and didn't.</li>
+        <li><strong>DBG7–8 Combined-artifact drills:</strong> "given this folder, find the bug" — HAR + console + screenshot together, the way a real ticket actually arrives.</li>
+      </ul>
+    `,
+  },
+  {
+    id: 'code-review-lab',
+    nav: 'Code review lab',
+    title: 'Code review lab',
+    html: `
+      <h2 class="sec">Lab: review this test</h2>
+      <p class="lead"><strong>Goal:</strong> read a realistic flawed spec, name every issue before revealing them, then compare against the improved version.</p>
+      <div class="card note"><strong>Why interviewers ask:</strong> code-review style questions beat trivia and mirror real PR review. Full source: <a href="interview/12-code-review-lab.md" target="_blank" rel="noopener">interview-qa/12-code-review-lab.md</a>.</div>
+      <div data-gap-widget="codereview"></div>
+      <div class="card good"><strong>Also see:</strong> <a href="#antipattern-lab">Spot the antipattern</a> for single-issue drills; this lab combines several issues per test like a real PR does.</div>
+    `,
+  },
+  {
+    id: 'bdd-mapping',
+    nav: 'BDD & Gherkin mapping',
+    title: 'BDD & Gherkin mapping',
+    html: `
+      <h2 class="sec">BDD &amp; Gherkin mapping</h2>
+      <p class="lead"><strong>After this section you can</strong> map a Gherkin feature to Playwright steps and argue, with a concrete cost, when BDD earns its overhead versus plain TypeScript tests.</p>
+      <div class="card note"><strong>Why interviewers ask:</strong> "Do you use BDD?" is really asking whether you pick tools for the team, not out of habit. Cross-link: <a href="#interview-tier-d">Tier D — D20</a> covers the organizational decision in depth.</div>
+
+      <h3 class="sub">Scenario vs Scenario Outline</h3>
+      <p class="lead">A <strong>Scenario</strong> is one concrete example. A <strong>Scenario Outline</strong> runs the same steps once per row of an <code class="inline">Examples</code> table — the Gherkin equivalent of a parameterized/data-driven test.</p>
+      <pre data-lang="gherkin"><code>Scenario Outline: Login rejects wrong passwords
+  Given I am on the login page
+  When I sign in as "&lt;user&gt;" with "&lt;password&gt;"
+  Then I see the error "&lt;message&gt;"
+
+  Examples:
+    | user      | password | message                |
+    | apex_user | wrong123 | Invalid credentials    |
+    | apex_locked | Password123! | Account locked — contact support |</code></pre>
+
+      <h3 class="sub">Gherkin → Playwright step mapping (playwright-bdd sketch)</h3>
+      <pre data-lang="typescript"><code>import { Given, When, Then } from 'playwright-bdd/decorators';
+import { test } from '../fixtures/test';
+
+Given('I am on the login page', async ({ page }) => {
+  await page.goto('/index.html#bank-demo');
+});
+
+When('I sign in as {string} with {string}', async ({ loginPage }, user: string, pass: string) => {
+  await loginPage.signIn(user, pass);
+});
+
+Then('I see the error {string}', async ({ loginPage }, message: string) => {
+  await expect(loginPage.error).toContainText(message);
+});</code></pre>
+      <p class="lead">cucumber-js wires the same feature file to step definitions via a <code class="inline">World</code> object instead of Playwright fixtures directly — <code class="inline">playwright-bdd</code> exists specifically to let Gherkin steps use native Playwright fixtures (POM, storageState, etc.) instead of re-plumbing that yourself.</p>
+
+      <h3 class="sub">When BDD earns its overhead</h3>
+      <ul class="tight">
+        <li><strong>Earns it:</strong> non-technical stakeholders (PM, compliance, business analyst) read and approve feature files as living documentation, and someone keeps them in sync.</li>
+        <li><strong>Doesn't earn it:</strong> an all-engineer team where the Gherkin layer becomes a second language nobody but QA reads — plain, well-named Playwright tests communicate the same intent with less ceremony and no step-definition indirection to debug through.</li>
+      </ul>
+      <div class="card warn"><strong>Common mistake:</strong> adopting Cucumber because "it's more professional" with no stakeholder actually reading the <code class="inline">.feature</code> files — see D20 for the full decision framework.</div>
     `,
   },
   {

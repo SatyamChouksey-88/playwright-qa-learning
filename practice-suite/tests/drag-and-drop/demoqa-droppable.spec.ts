@@ -27,7 +27,8 @@ test('@external DemoQA — drop draggable into droppable (Simple tab)', async ({
 
   const dragBox = await drag.boundingBox();
   const dropBox = await drop.boundingBox();
-  expect(dragBox && dropBox).toBeTruthy();
+  expect(dragBox).not.toBeNull();
+  expect(dropBox).not.toBeNull();
 
   await page.mouse.move(dragBox!.x + dragBox!.width / 2, dragBox!.y + dragBox!.height / 2);
   await page.mouse.down();

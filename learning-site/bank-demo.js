@@ -36,9 +36,64 @@
 
   window.BankDemoMocks = window.BankDemoMocks || {};
 
+  const SESSION_KEY = 'pw-bank-demo-session';
+
+  function persistSession() {
+    try {
+      if (!state.user) {
+        localStorage.removeItem(SESSION_KEY);
+        return;
+      }
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({
+          username: state.user.username,
+          name: state.user.name,
+          sessionExpiresAt: state.sessionExpiresAt,
+          passkeyRegistered: state.passkeyRegistered,
+        }),
+      );
+    } catch (_) {
+      /* private mode / file quirks */
+    }
+  }
+
+  function restoreSession() {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!saved?.username || !saved?.sessionExpiresAt) return;
+      if (Date.now() > saved.sessionExpiresAt) {
+        localStorage.removeItem(SESSION_KEY);
+        return;
+      }
+      const base = USERS[saved.username] || USERS.apex_user;
+      state.user = { ...base, username: saved.username, name: saved.name || base.name };
+      state.sessionExpiresAt = saved.sessionExpiresAt;
+      state.passkeyRegistered = !!saved.passkeyRegistered;
+    } catch (_) {
+      /* ignore corrupt session */
+    }
+  }
+
   async function api(path, body) {
     const mock = window.BankDemoMocks[path];
     if (typeof mock === 'function') return mock(body);
+    // Prefer real fetch so Playwright page.route / route.fulfill can teach network-layer mocking.
+    // Static hosts 404 — fall back to in-memory defaults so file:// and serve keep working.
+    if (path === '/api/bank/balance' || path === '/api/bank/session') {
+      try {
+        const res = await fetch(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body || {}),
+        });
+        if (res.ok) return await res.json();
+      } catch (_) {
+        /* offline / file:// */
+      }
+    }
     if (path === '/api/bank/balance') {
       return { checking: state.checking, savings: state.savings };
     }
@@ -77,6 +132,10 @@
 
   function toast(root, msg, ok = true) {
     const t = root.querySelector('.bank-toast');
+    if (t) {
+      t.setAttribute('role', 'status');
+      t.setAttribute('aria-live', 'polite');
+    }
     t.hidden = false;
     t.textContent = msg;
     t.className = 'bank-toast ' + (ok ? 'ok' : 'bad');
@@ -241,6 +300,8 @@
   function maybeExpireSession(root) {
     if (state.sessionExpiresAt && Date.now() > state.sessionExpiresAt) {
       state.user = null;
+      state.sessionExpiresAt = null;
+      persistSession();
       toast(root, 'Session expired', false);
       render(root);
     }
@@ -274,6 +335,7 @@
       }
       state.user = { ...user, username: u };
       state.sessionExpiresAt = Date.now() + 5 * 60_000;
+      persistSession();
       render(root);
     };
     root.querySelector('[data-passkey]').onclick = () => {
@@ -281,6 +343,7 @@
       if (window.__BANK_PASSKEY_OK || state.passkeyRegistered) {
         state.user = { ...USERS.apex_user, username: 'apex_user', name: 'Passkey User' };
         state.sessionExpiresAt = Date.now() + 5 * 60_000;
+        persistSession();
         render(root);
         return;
       }
@@ -298,6 +361,7 @@
       state.user = { ...pending2fa, username: 'apex_2fa' };
       state.sessionExpiresAt = Date.now() + 5 * 60_000;
       state.loginOtp = null;
+      persistSession();
       render(root);
     };
     root.querySelector('#forgot-link').onclick = () => { root.querySelector('.reset-box').hidden = false; };
@@ -306,12 +370,20 @@
       toast(root, 'Simulated OTP sent to email', true);
     };
     root.querySelectorAll('.otp-input').forEach((inp, i, arr) => {
+      inp.setAttribute('inputmode', 'numeric');
+      inp.setAttribute('autocomplete', 'one-time-code');
       inp.addEventListener('input', () => { if (inp.value && arr[i + 1]) arr[i + 1].focus(); });
     });
+    if (err) err.setAttribute('role', 'alert');
   }
 
   function bindApp(root) {
-    root.querySelector('[data-logout]').onclick = () => { state.user = null; render(root); };
+    root.querySelector('[data-logout]').onclick = () => {
+      state.user = null;
+      state.sessionExpiresAt = null;
+      persistSession();
+      render(root);
+    };
     root.querySelectorAll('[data-tab]').forEach(btn => {
       btn.onclick = () => {
         root.querySelectorAll('.bank-panel').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== btn.dataset.tab));
@@ -505,6 +577,7 @@
   window.BankDemo = {
     mount(host) {
       if (!host) return;
+      restoreSession();
       render(host);
     },
     _debugState() {

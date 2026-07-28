@@ -28,8 +28,10 @@ export class LoginPage {
 
   async enterOtp(code: string) {
     const inputs = this.page.locator('.otp-input');
-    for (let i = 0; i < code.length; i++) {
-      await inputs.nth(i).fill(code[i]!);
+    let i = 0;
+    for (const ch of code) {
+      await inputs.nth(i).fill(ch);
+      i += 1;
     }
     await this.verifyOtp.click();
   }
