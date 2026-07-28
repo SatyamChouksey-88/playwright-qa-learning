@@ -6,7 +6,7 @@ import { PERSONAS } from '../../fixtures/personas';
  * WCAG A/AA scan of bank-demo login + dashboard.
  * Documented exclusions go in disableRules — keep intentional and reviewed.
  */
-test.describe('Bank Demo accessibility @bank-demo', () => {
+test.describe('Bank Demo accessibility @bank-demo @a11y', () => {
   test('login screen has no serious A/AA violations @bank-demo', async ({ page }) => {
     await page.goto('/index.html#bank-demo');
     await expect(page.getByTestId('auth-screen')).toBeVisible();
