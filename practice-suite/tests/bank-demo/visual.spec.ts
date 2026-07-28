@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Bank Demo visual @bank-demo', () => {
+test.describe('Bank Demo visual @bank-demo @visual', () => {
   test('login card screenshot @bank-demo', async ({ page }) => {
     await page.goto('/index.html#bank-demo');
     await expect(page.getByTestId('auth-screen')).toBeVisible();

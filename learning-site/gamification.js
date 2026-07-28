@@ -1,4 +1,5 @@
 /** Gamification (GM-*) — quality-gated streaks, badges, certificates. No leaderboards. */
+/* global Image */
 (function () {
   const STREAK_KEY = 'pqa.streak.v1';
   const BADGES_KEY = 'pqa.badges.v1';

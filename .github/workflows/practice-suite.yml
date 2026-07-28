@@ -32,6 +32,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+      - run: node ../tools/ci/check-test-antipatterns.mjs
+        working-directory: .
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --project=bank-demo --project=setup --project=bank-demo-authed
       - uses: actions/upload-artifact@v4
@@ -103,6 +105,8 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --project=chromium-external --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        env:
+          PW_BLOB: '1'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

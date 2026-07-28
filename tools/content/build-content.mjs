@@ -61,6 +61,26 @@ function ensureFrontmatter(filePath, fmObject) {
   return fm + body.replace(/^\uFEFF/, '').replace(/^\s+/, '');
 }
 
+function lintTemplateCoverage(interviewData, stuckEntries) {
+  const violations = [];
+  for (const [key, block] of Object.entries(interviewData)) {
+    if (!block?.questions) continue;
+    for (const q of block.questions) {
+      if (!q.thinkFirst && key === 'tierA') {
+        violations.push(`${q.id}: missing Scenario v2 "Think first" (Tier A)`);
+      }
+    }
+  }
+  for (const e of stuckEntries) {
+    for (const field of ['symptom', 'why', 'debug', 'fix']) {
+      if (!e[field]?.trim()) violations.push(`stuck:${e.id}: missing ${field}`);
+    }
+  }
+  if (violations.length) {
+    throw new Error(`Template linter failed:\n  - ${violations.join('\n  - ')}`);
+  }
+}
+
 function loadMeta() {
   return YAML.parse(readText(path.join(ROOT, 'interview-qa/_meta.yaml')));
 }
@@ -286,6 +306,24 @@ function collectSearchDocuments(interviewData, stuckEntries = [], caseStudies = 
         body: `${stripHtml(q.ideal)} ${stripHtml(q.stuck)}`,
       });
     }
+  }
+
+  // Orphan SSOT markdown mirrored but not tier/stuck/case parsed — index for search (A9/D1).
+  for (const name of ['QA-75.md', 'playwright-interview-qa.md']) {
+    const p = path.join(ROOT, 'interview-qa', name);
+    if (!fs.existsSync(p)) continue;
+    const raw = readText(p);
+    const { body } = splitFrontmatter(raw);
+    const title = stripHtml(body.match(/^#\s+(.+)$/m)?.[1] || name.replace(/\.md$/, ''));
+    const slug = name.replace(/\.md$/, '').toLowerCase();
+    docs.push({
+      id: `ssot:${slug}`,
+      kind: 'ssot-doc',
+      target: 'interview',
+      title,
+      nav: 'Interview SSOT',
+      body: stripHtml(body).slice(0, 4000),
+    });
   }
 
   // Essentials + other committed data blobs (eval in isolated context).
@@ -1064,6 +1102,7 @@ function main() {
     seenStuckIds.add(e.id);
   }
   console.log(`  stuck hub: ${stuckEntries.length} entries`);
+  lintTemplateCoverage(interviewData, stuckEntries);
   writeOrCollect(path.join(ROOT, 'learning-site/stuck-data.js'), emitStuckJs(stuckEntries), planned);
 
   // Case studies (interview-qa/case-studies.md)

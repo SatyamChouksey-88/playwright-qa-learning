@@ -69,24 +69,134 @@ async function ensureSearchIndex(statusEl) {
 window.ensureSearchIndex = ensureSearchIndex;
 
 const SECTION_LAZY_SCRIPTS = {
+  home: ['reading-times.js'],
+  drill: ['drill-data.js'],
+  quiz: ['quiz-data.js'],
+  interview: ['interview-essentials-data.js'],
+  'interview-tier-a': ['interview-essentials-data.js'],
+  'interview-tier-b': ['interview-essentials-data.js'],
+  'interview-tier-c': ['interview-essentials-data.js'],
+  'interview-tier-d': ['interview-essentials-data.js'],
+  'interview-essentials': ['interview-essentials-data.js'],
+  playground: ['playground-data.js', 'practice-widgets.js'],
+  'playground-qa': ['playground-data.js'],
+  'elements-hub': ['playground-data.js', 'practice-widgets.js', 'hub-widgets.js'],
+  xpath: ['xpath-data.js', 'xpath-widgets.js'],
+  mistakes: ['mistakes-data.js', 'skills-practice-data.js', 'skills-practice-widgets.js'],
+  frames: ['skills-practice-data.js', 'skills-practice-widgets.js'],
+  clipboard: ['skills-practice-data.js', 'skills-practice-widgets.js'],
+  'skills-practice': ['skills-practice-data.js', 'skills-practice-widgets.js'],
+  assessments: ['assessments-data.js'],
+  'section-mcq': ['section-mcq-data.js'],
   miniapps: ['miniapps-data.js'],
   'miniapps-qa': ['miniapps-data.js'],
-  'antipattern-lab': ['gap-practice-data.js'],
-  'trace-lab': ['gap-practice-data.js'],
-  'star-builder': ['gap-practice-data.js'],
-  'mock-interview': ['gap-practice-data.js'],
-  postmortems: ['gap-practice-data.js'],
-  'code-review-lab': ['gap-practice-data.js'],
+  'antipattern-lab': ['gap-practice-data.js', 'gap-practice.js'],
+  'trace-lab': ['gap-practice-data.js', 'gap-practice.js'],
+  'star-builder': ['gap-practice-data.js', 'gap-practice.js'],
+  'mock-interview': ['gap-practice-data.js', 'gap-practice.js'],
+  postmortems: ['gap-practice-data.js', 'gap-practice.js'],
+  'code-review-lab': ['gap-practice-data.js', 'gap-practice.js'],
+  fsrs: ['vendor/ts-fsrs.js', 'fsrs-app.js'],
+  framework: ['framework-data.js', 'framework-diagrams.js', 'framework-academy.js'],
+  interviewer: ['interviewer-data.js', 'interviewer-diagrams.js', 'interviewer-mode.js'],
+  skills: ['skills-data.js', 'topics-data.js', 'skills-modules.js'],
+  'skills-lesson': ['skills-data.js', 'topics-data.js', 'skills-modules.js'],
+  readiness: ['readiness-engine.js', 'readiness-ui.js', 'gamification.js'],
+  'mock-exam': ['mock-exam-pool.js', 'mock-exam.js', 'gamification.js'],
+  planner: ['study-planner.js', 'gamification.js'],
+  bookmarks: ['personal-knowledge.js'],
+  notes: ['personal-knowledge.js'],
+  'my-cheatsheet': ['personal-knowledge.js'],
+  backup: ['personal-knowledge.js'],
+  stuck: ['stuck-data.js'],
+  'case-studies': ['cases-data.js'],
+  'production-failures': ['cases-data.js'],
+  'framework-at-scale': ['cases-data.js'],
+  internals: ['cases-data.js'],
+  'debugging-artifacts-lab': ['cases-data.js'],
+  'bdd-mapping': ['gap-pages-data.js'],
+  'ci-deep-dive': ['gap-pages-data.js'],
+  'contract-and-realtime': ['gap-pages-data.js'],
+  'sdet-field-guide': ['gap-pages-data.js', 'gap-practice.js'],
+  'hub-widgets': ['hub-widgets.js'],
+};
+
+let readingTimesApplied = false;
+function maybeApplyReadingTimes() {
+  if (window.READING_TIMES && !readingTimesApplied) {
+    applyReadingTimes();
+    readingTimesApplied = true;
+  }
+}
+
+let sectionMcqsRendered = false;
+function maybeRenderSectionMcqs() {
+  if (window.SECTION_MCQ && !sectionMcqsRendered) {
+    renderSectionMcqs();
+    sectionMcqsRendered = true;
+  }
+}
+
+const SECTION_BOOT = {
+  home: () => maybeApplyReadingTimes(),
+  drill: () => initDrill(),
+  quiz: () => renderQuiz(),
+  interview: () => renderInterviewSection(),
+  'interview-tier-a': () => renderInterviewSection(),
+  'interview-tier-b': () => renderInterviewSection(),
+  'interview-tier-c': () => renderInterviewSection(),
+  'interview-tier-d': () => renderInterviewSection(),
+  'interview-essentials': () => renderInterviewEssentials(),
+  playground: () => renderPlayground(),
+  'playground-qa': () => renderPlaygroundQa(),
+  'elements-hub': () => renderElementsHub(),
+  xpath: () => renderXpathSection(),
+  mistakes: () => {
+    renderMistakesSection();
+    renderSkillsPracticeBlock('mistakes', 'mistakesPracticeHost', 'mistakesPracticeLead');
+  },
+  frames: () => renderSkillsPracticeBlock('frames', 'framesPracticeHost', 'framesPracticeLead'),
+  clipboard: () => renderSkillsPracticeBlock('clipboard', 'clipboardPracticeHost', 'clipboardPracticeLead'),
+  'skills-practice': () => renderAllSkillsPractice(),
+  assessments: () => renderAssessments(),
+  'bank-demo': () => renderBankDemo(),
+  skills: () => window.SkillsModules?.boot?.(),
+  'skills-lesson': () => window.SkillsModules?.boot?.(),
+  readiness: () => window.ReadinessUI?.boot?.(),
+  'mock-exam': () => window.MockExam?.boot?.(),
+  planner: () => window.StudyPlanner?.boot?.(),
+  bookmarks: () => {
+    const el = document.getElementById('bookmarksMount');
+    if (el) window.PersonalKnowledge?.renderBookmarks?.(el);
+  },
+  notes: () => {
+    const el = document.getElementById('notesMount');
+    if (el) window.PersonalKnowledge?.renderNotes?.(el);
+  },
+  'my-cheatsheet': () => {
+    const el = document.getElementById('cheatsheetMount');
+    if (el) window.PersonalKnowledge?.renderCheatsheet?.(el);
+  },
+  backup: () => {
+    const el = document.getElementById('backupMount');
+    if (el) window.PersonalKnowledge?.renderBackup?.(el);
+  },
+  fsrs: () => window.FSRSApp?.mount?.(document.getElementById('fsrsHost')),
 };
 
 async function ensureSectionData(id) {
-  const scripts = SECTION_LAZY_SCRIPTS[id];
-  if (!scripts?.length) return true;
   const page = document.getElementById(id);
   try {
+    const scripts = SECTION_LAZY_SCRIPTS[id] || [];
     for (const src of scripts) await injectScript(src);
     if (id === 'miniapps' || id === 'miniapps-qa') renderMiniapps();
     if (scripts.includes('gap-practice-data.js')) window.GapPractice?.remountWidgets?.();
+    if (scripts.includes('reading-times.js')) maybeApplyReadingTimes();
+    if (id !== 'home' && !window.SECTION_MCQ) {
+      await injectScript('section-mcq-data.js');
+      maybeRenderSectionMcqs();
+    }
+    SECTION_BOOT[id]?.();
     return true;
   } catch (err) {
     console.warn('Section data failed', id, err);
@@ -987,7 +1097,6 @@ function applyReadingTimes() {
   }
 }
 window.applyReadingTimes = applyReadingTimes;
-applyReadingTimes();
 
 
 document.getElementById('resetStudyProgress')?.addEventListener('click', () => {
@@ -1694,23 +1803,12 @@ function renderSectionMcqs() {
   });
 }
 
-renderSectionMcqs();
-
 /* ---------------- Search (prebuilt MiniSearch — lazy-loaded index) ---------------- */
 window.PWMiniSearch = window.PWMiniSearch || null;
 window.PW_STUDY_ITEMS = STUDY_ITEMS;
 
 renderStudyChecklist();
-renderPlayground();
-// Miniapps data is lazy-loaded on first visit to #miniapps
-renderElementsHub();
-renderXpathSection();
-renderMistakesSection();
-renderAllSkillsPractice();
 renderBankDemo();
-renderAssessments();
-renderInterviewSection();
-initDrill();
 
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
@@ -1806,7 +1904,32 @@ window.showSection = show;
 /* HTTPS-only service worker (never file://) */
 if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      const toast = document.getElementById('swUpdateToast');
+      if (toast) {
+        toast.hidden = false;
+        toast.querySelector('[data-sw-refresh]')?.addEventListener('click', () => location.reload());
+      }
+    });
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      document.querySelector('[data-sw-refresh]')?.addEventListener('click', () => {
+        reg.waiting?.postMessage({ type: 'SKIP_WAITING' });
+        location.reload();
+      });
+      reg.addEventListener('updatefound', () => {
+        const worker = reg.installing;
+        if (!worker) return;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            const toast = document.getElementById('swUpdateToast');
+            if (toast) toast.hidden = false;
+          }
+        });
+      });
+    }).catch(() => {});
   }
 }
 
@@ -1922,5 +2045,4 @@ function renderQuiz() {
     container.appendChild(div);
   });
 }
-document.getElementById('resetQuiz').addEventListener('click', renderQuiz);
-renderQuiz();
+document.getElementById('resetQuiz')?.addEventListener('click', renderQuiz);
