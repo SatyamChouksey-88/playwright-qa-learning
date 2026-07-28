@@ -32,7 +32,7 @@
     details.dataset.gapNav = '1';
     details.dataset.navGroup = 'gap';
     const summary = document.createElement('summary');
-    summary.textContent = 'SDET breadth & labs';
+    summary.textContent = 'SDET guide & labs';
     details.appendChild(summary);
     window.GAP_PAGES.forEach((p) => {
       const a = document.createElement('a');

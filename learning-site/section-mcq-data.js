@@ -1973,8 +1973,8 @@ window.SECTION_MCQ = {
       }
     ]
   },
-  "grids-mobile": {
-    title: "Grids & mobile — practice MCQs",
+  "sdet-field-guide": {
+    title: "SDET field guide — practice MCQs",
     items: [
       {
         q: "Playwright mobile project primarily gives you:",
@@ -1989,6 +1989,20 @@ window.SECTION_MCQ = {
         think: "“Playwright replaces Appium for native.”",
         actual: "Different layers: web vs native.",
         stuck: "Promising native coverage with device descriptors only."
+      },
+      {
+        q: "Which leadership metric set is DORA?",
+        options: [
+          "Pass rate and test count only",
+          "Deploy frequency, lead time, change-failure rate, MTTR",
+          "Only LCP and CLS",
+          "Only flake quarantine count"
+        ],
+        answer: 1,
+        explain: "DORA is four delivery metrics; pair with escape rate and flake rate for quality truth.",
+        think: "“Leaders only want pass %.”",
+        actual: "Pass % without flake/escape misleads.",
+        stuck: "Volume reporting that nobody acts on."
       }
     ]
   },

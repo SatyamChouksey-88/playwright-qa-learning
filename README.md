@@ -17,9 +17,10 @@ Owned by **[SatyamChouksey-88](https://github.com/SatyamChouksey-88)** — Playw
 
 | Signal | Value |
 |--------|-------|
-| Interview scenarios | 122 (A25+B30+C27+D40) |
+| Interview scenarios | **135** (A25 + B34 + C32 + D44) |
 | Essentials pack | ~53 |
-| Search corpus | ~400 MiniSearch docs |
+| Search corpus | **461** MiniSearch docs |
+| SDET guide & labs | **16** curated teaching pages (clarity-templated) |
 | External practice specs | 46 `@external` (nightly) |
 | Bank-demo PR specs | auth + site smoke (`@bank-demo`) |
 | Runtime install for site | **0** |
