@@ -20,6 +20,10 @@
 <body>
 <a class="skip-link" href="#content">Skip to content</a>
 <div id="ariaLive" class="sr-live" aria-live="polite" aria-atomic="true"></div>
+<div id="swUpdateToast" class="sw-update-toast card tip" hidden role="status">
+  <p><strong>New version available</strong> — refresh to load the latest curriculum.</p>
+  <button type="button" class="pw-btn tiny" data-sw-refresh>Refresh now</button>
+</div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
     <linearGradient id="pwMarkGrad" x1="0" y1="0" x2="1" y2="1">
@@ -3372,48 +3376,13 @@ npx playwright install --with-deps</code></pre>
   </form>
 </dialog>
 
-<script src="vendor/minisearch.js" defer></script>
-<script src="vendor/ts-fsrs.js" defer></script>
-<!-- search-index.js is lazy-injected on first search open (see app.js ensureSearchIndex) -->
+<script src="safe-html.js" defer></script>
 <script src="storage.js" defer></script>
-<script src="quiz-data.js" defer></script>
+<script src="vendor/minisearch.js" defer></script>
 <script src="interview-data.js" defer></script>
-<script src="interview-essentials-data.js" defer></script>
-<script src="playground-data.js" defer></script>
-<!-- miniapps-data.js / gap-practice-data.js lazy-loaded on section navigation -->
-<script src="section-mcq-data.js" defer></script>
-<script src="xpath-data.js" defer></script>
-<script src="xpath-widgets.js" defer></script>
-<script src="mistakes-data.js" defer></script>
-<script src="skills-practice-data.js" defer></script>
-<script src="skills-practice-widgets.js" defer></script>
-<script src="assessments-data.js" defer></script>
-<script src="practice-widgets.js" defer></script>
-<script src="hub-widgets.js" defer></script>
 <script src="bank-demo.js" defer></script>
-<script src="fsrs-app.js" defer></script>
-<script src="gap-pages-data.js" defer></script>
-<script src="gap-practice.js" defer></script>
-<script src="stuck-data.js" defer></script>
-<script src="cases-data.js" defer></script>
-<script src="framework-data.js" defer></script>
-<script src="framework-diagrams.js" defer></script>
-<script src="framework-academy.js" defer></script>
-<script src="interviewer-data.js" defer></script>
-<script src="interviewer-diagrams.js" defer></script>
-<script src="interviewer-mode.js" defer></script>
-<script src="skills-data.js" defer></script>
-<script src="topics-data.js" defer></script>
-<script src="mock-exam-pool.js" defer></script>
-<script src="readiness-engine.js" defer></script>
-<script src="readiness-ui.js" defer></script>
-<script src="skills-modules.js" defer></script>
-<script src="mock-exam.js" defer></script>
-<script src="study-planner.js" defer></script>
-<script src="personal-knowledge.js" defer></script>
-<script src="gamification.js" defer></script>
-<script src="reading-times.js" defer></script>
 <script src="app.js" defer></script>
 <script src="ui-2026.js" defer></script>
+<!-- Route-specific scripts lazy-loaded via app.js ensureSectionData (C4) -->
 </body>
 </html>

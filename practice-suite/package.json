@@ -20,6 +20,8 @@
     "test:bank-demo": "playwright test --project=bank-demo --project=setup --project=bank-demo-authed",
     "test:external": "playwright test --project=chromium-external",
     "test:smoke": "playwright test --project=bank-demo --project=setup --project=bank-demo-authed --grep @smoke",
+    "test:a11y": "playwright test --project=bank-demo --grep @a11y",
+    "test:visual": "playwright test --project=bank-demo --grep @visual",
     "typecheck": "tsc --noEmit",
     "lint": "eslint -c ../eslint.config.mjs .",
     "exercise": "playwright test -c exercises/playwright.config.ts",

@@ -20,8 +20,8 @@ export default defineConfig({
     ? [
         ['list'],
         ['html', { open: 'never' }],
-        ['blob'],
         ['json', { outputFile: 'test-results/report.json' }],
+        ...(process.env.PW_BLOB ? [['blob'] as const] : []),
       ]
     : [['list'], ['html', { open: 'never' }]],
   timeout: 60_000,
@@ -41,7 +41,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    ignoreHTTPSErrors: true,
   },
   projects: [
     {
@@ -76,7 +75,11 @@ export default defineConfig({
       name: 'chromium-external',
       testIgnore: /bank-demo\//,
       grep: /@external/,
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Some third-party sandboxes use misconfigured TLS; scoped here only — not bank-demo.
+        ignoreHTTPSErrors: true,
+      },
     },
     {
       name: 'firefox-bank-demo',

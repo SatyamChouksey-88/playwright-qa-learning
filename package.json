@@ -8,8 +8,11 @@
     "build:content": "node tools/content/build-content.mjs",
     "check:content": "node tools/content/build-content.mjs --check",
     "check:metrics": "node tools/content/check-metrics.mjs",
+    "generate:sw": "node tools/generate-sw.mjs",
+    "generate:icons": "node tools/generate-icons.mjs",
     "test:readiness": "node tools/readiness/readiness.test.mjs",
     "lint": "eslint .",
+    "typecheck": "npm --prefix practice-suite run typecheck",
     "format": "prettier --write .",
     "test:bank-demo": "npm --prefix practice-suite run test:bank-demo"
   },
