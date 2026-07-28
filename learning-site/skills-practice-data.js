@@ -93,7 +93,7 @@ window.SKILLS_PRACTICE = {
         name: "Seed clipboard then paste",
         goal: "Use “Seed clipboard” (simulates navigator.clipboard.writeText), focus the editor, paste, assert text appears.",
         traps: "fill() may skip paste handlers — use real paste when the app listens for paste events.",
-        recipe: `await page.evaluate(async (t) => navigator.clipboard.writeText(t), 'Hello from clipboard');\nawait page.locator('[contenteditable=\"true\"]').click();\nawait page.keyboard.press('Control+V');\nawait expect(page.locator('[contenteditable=\"true\"]')).toContainText('Hello from clipboard');`,
+        recipe: `await page.evaluate(async (t) => navigator.clipboard.writeText(t), 'Hello from clipboard');\nawait page.locator('[contenteditable="true"]').click();\nawait page.keyboard.press('Control+V');\nawait expect(page.locator('[contenteditable="true"]')).toContainText('Hello from clipboard');`,
       },
       {
         id: "sk-clip-read",

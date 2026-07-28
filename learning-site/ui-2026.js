@@ -320,6 +320,7 @@
     const pathsTitle = root.querySelector('[data-dash="paths-title"]');
     if (pathsTitle) pathsTitle.textContent = fresh ? 'New here? Pick a path' : 'Jump back in';
     root.querySelector('.tile.is-hero')?.classList.toggle('is-fresh', fresh);
+    window.ReadinessUI?.updateDashboardTile?.();
   }
 
   function renderResume(host, studyDone) {
@@ -373,6 +374,48 @@
   }
 
   /* ------------------------------------------------------------------ *
+   * Learning path % (roadmap SVG)
+   * ------------------------------------------------------------------ */
+  const PATH_STAGE_SECTIONS = {
+    beginner: ['home', 'whats-new', 'test-design', 'pyramid-nft', 'deprecated', 'setup'],
+    intermediate: ['locators', 'xpath', 'waiting', 'actions', 'frames', 'multi-context', 'clipboard'],
+    advanced: ['fixtures', 'fixtures-advanced', 'pom', 'auth', 'clock', 'webauthn', 'websocket', 'network', 'visual'],
+    senior: ['ci', 'a11y-wcag', 'performance-cwv', 'agents-mcp', 'component-testing', 'mistakes', 'antipattern-lab', 'trace-lab', 'flake'],
+    architect: ['contract-testing', 'sdet-field-guide', 'currency-2026', 'interview', 'fsrs', 'glossary', 'quiz', 'star-builder', 'mock-interview', 'postmortems', 'micro-tools', 'playground', 'bank-demo'],
+  };
+
+  function refreshLearningPath() {
+    const root = $('#learningPath');
+    if (!root) return;
+    const studyDone = loadSet('pw-study-checklist');
+    const items = window.PW_STUDY_ITEMS || [];
+    const known = new Set(items.map((i) => i.id));
+    let stageSum = 0;
+    let stageCount = 0;
+
+    Object.entries(PATH_STAGE_SECTIONS).forEach(([stage, ids]) => {
+      const scoped = ids.filter((id) => known.has(id));
+      const total = scoped.length || ids.length;
+      const done = scoped.filter((id) => studyDone.has(id)).length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      stageSum += pct;
+      stageCount += 1;
+      const g = root.querySelector(`[data-path-stage="${stage}"]`);
+      const label = g?.querySelector('[data-path-pct]');
+      if (label) label.textContent = `${pct}%`;
+    });
+
+    const progress = root.querySelector('[data-path-progress]');
+    if (progress && stageCount) {
+      const overall = stageSum / stageCount / 100;
+      const len = Number(progress.getAttribute('pathLength') || 544);
+      progress.setAttribute('stroke-dasharray', String(len));
+      progress.setAttribute('stroke-dashoffset', String(Math.round(len * (1 - overall))));
+      progress.setAttribute('data-path-progress', String(Math.round(overall * 100)));
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
    * Command palette
    * ------------------------------------------------------------------ */
   const RECENT_KEY = 'pw-cmdk-recent';
@@ -382,6 +425,12 @@
 
   function paletteCommands() {
     return [
+      { kind: 'command', id: 'skills', title: 'Skill Modules', icon: 'i-book', where: 'Skills' },
+      { kind: 'command', id: 'readiness', title: 'Interview readiness', icon: 'i-target', where: 'Readiness' },
+      { kind: 'command', id: 'mock-exam', title: 'Mock exam', icon: 'i-spark', where: 'Readiness' },
+      { kind: 'command', id: 'planner', title: 'Study planner', icon: 'i-clock', where: 'Readiness' },
+      { kind: 'command', id: 'interviewer', title: 'Interviewer Mode', icon: 'i-mic', where: 'Interview' },
+      { kind: 'command', id: 'framework', title: 'Framework Academy', icon: 'i-layers', where: 'Structure' },
       { kind: 'command', id: 'fsrs', title: 'Start due review', icon: 'i-play', where: 'Review' },
       { kind: 'command', id: 'drill', title: 'Random drill', icon: 'i-spark', where: 'Review' },
       { kind: 'command', id: 'interview', title: 'Interview bank', icon: 'i-mic', where: 'Interview' },
@@ -408,7 +457,7 @@
   function searchItems(query) {
     const mini = window.PWMiniSearch;
     if (!mini) return [];
-    let hits = [];
+    let hits;
     try {
       hits = mini.search(query, { boost: { title: 4, nav: 2, body: 1 }, fuzzy: 0.15, prefix: true });
     } catch { return []; }
@@ -418,14 +467,55 @@
       const key = (hit.title || '') + '|' + (hit.target || '');
       if (seen.has(key)) continue;
       seen.add(key);
+      const kind = hit.kind || 'result';
+      let navId = hit.target || 'home';
+      // Framework lesson/mcq/scenario targets map onto Academy pages.
+      if (String(navId).startsWith('FW-L-') || String(navId).startsWith('fw-l-')) {
+        navId = 'framework-lesson';
+      } else if (
+        String(kind).startsWith('framework') ||
+        String(navId).startsWith('FW-') ||
+        String(navId).startsWith('fw-')
+      ) {
+        navId = 'framework';
+      } else if (String(kind) === 'stuck' || String(navId).startsWith('stuck-')) {
+        navId = 'framework'; // stuck hub UI may land elsewhere; keep searchable
+      } else if (
+        String(kind).startsWith('iv-') ||
+        String(navId).startsWith('IV-Q-') ||
+        String(navId).startsWith('IV-CODE-') ||
+        String(navId).startsWith('IV-KIT-') ||
+        String(navId).startsWith('IV-CRAFT-')
+      ) {
+        if (String(navId).startsWith('IV-KIT-')) navId = 'interviewer-kit';
+        else if (String(navId).startsWith('IV-CRAFT-')) navId = 'interviewer-craft';
+        else navId = 'interviewer-question';
+      } else if (
+        String(kind).startsWith('skill') ||
+        String(navId).startsWith('SK-')
+      ) {
+        if (String(navId).startsWith('SK-') && navId.includes('-L')) navId = 'skills-lesson';
+        else if (String(kind) === 'skill-track' || String(navId).startsWith('SK-')) navId = 'skills';
+      }
       out.push({
         kind: 'result',
-        id: hit.target || 'home',
+        contentKind: kind,
+        lessonId: hit.target,
+        id: navId,
         title: hit.title || hit.id,
         where: hit.nav || hit.kind || '',
-        icon: 'i-arrow',
+        icon: kind.startsWith('framework') ? 'i-layers' : kind.startsWith('iv-') ? 'i-mic' : kind.startsWith('skill') ? 'i-book' : 'i-arrow',
       });
       if (out.length >= 24) break;
+    }
+    // Prefer Framework group first for framework-shaped queries.
+    const fwish = /fixture|pom|storageState|shard|worker.?scope|framework|mergeTests/i.test(query);
+    if (fwish) {
+      out.sort((a, b) => {
+        const aFw = String(a.contentKind || '').startsWith('framework') ? 0 : 1;
+        const bFw = String(b.contentKind || '').startsWith('framework') ? 0 : 1;
+        return aFw - bFw;
+      });
     }
     return out;
   }
@@ -490,12 +580,35 @@
     }
     pushRecent(item.id);
     goTo(item.id);
+    if (item.lessonId && /^FW-L-\d+/i.test(String(item.lessonId))) {
+      window.FrameworkAcademy?.showLesson?.(String(item.lessonId));
+    }
+    if (item.lessonId && /^IV-/i.test(String(item.lessonId))) {
+      const tid = String(item.lessonId);
+      if (tid.startsWith('IV-KIT-')) window.InterviewerMode?.showKit?.(tid);
+      else if (tid.startsWith('IV-CRAFT-')) window.InterviewerMode?.showCraft?.(tid);
+      else window.InterviewerMode?.showQuestion?.(tid);
+    }
+    if (item.lessonId && /^SK-[A-Z]+-L/i.test(String(item.lessonId))) {
+      window.SkillsModules?.showLesson?.(String(item.lessonId));
+    }
   }
 
-  function openPalette() {
+  async function openPalette() {
     if (!palette.dialog) return;
     if (!palette.dialog.open) palette.dialog.showModal();
     palette.input.value = '';
+    palette.input.disabled = true;
+    palette.input.placeholder = 'Loading search…';
+    palette.list.innerHTML = '<li class="cmdk-empty" role="status">Loading search index…</li>';
+    try {
+      await window.ensureSearchIndex?.(palette.input);
+    } catch {
+      palette.list.innerHTML = '<li class="cmdk-empty" role="alert">Search failed to load — reload the page.</li>';
+      return;
+    }
+    palette.input.disabled = false;
+    palette.input.placeholder = 'Search topics, questions, labs…';
     renderPalette('');
     palette.input.focus();
   }
@@ -638,6 +751,7 @@
         const out = original.call(this, id, push);
         try { localStorage.setItem('pw-last-section', id); } catch { /* quota */ }
         if (id === 'home') refresh();
+        if (id === 'roadmap') refreshLearningPath();
         updateGroupHints();
         buildToc(document.getElementById(id));
         return out;
@@ -650,6 +764,7 @@
     renderDashboard();
     updateStreakChip();
     updateGroupHints();
+    refreshLearningPath();
   }
 
   function boot() {
@@ -657,11 +772,12 @@
     initReviewShortcuts();
     initShell();
     refresh();
+    window.applyReadingTimes?.();
     buildToc(document.querySelector('.page:not(.hidden)'));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
-  window.PWDash = { refresh };
+  window.PWDash = { refresh, refreshLearningPath };
 })();

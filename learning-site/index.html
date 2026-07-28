@@ -12,6 +12,8 @@
 <meta name="twitter:card" content="summary" />
 <meta name="author" content="Satyam Chouksey" />
 <link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0f1419" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)" />
 <link rel="stylesheet" href="styles.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%232ead51'/><text x='50' y='68' text-anchor='middle' font-size='42' font-family='Segoe UI,Arial' font-weight='700' fill='%23041018'>PW</text></svg>" />
 </head>
@@ -74,8 +76,21 @@
   <button type="button" class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle color theme">
     <svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><use href="#i-sun"/></svg>
   </button>
+  <button type="button" class="iconbtn" id="settingsBtn" title="Site settings" aria-label="Open site settings" aria-haspopup="dialog" aria-controls="siteSettings">
+    <svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><use href="#i-layers"/></svg>
+  </button>
   <input id="searchInput" type="search" hidden aria-hidden="true" tabindex="-1" />
 </header>
+
+<dialog id="siteSettings" class="cmdk" aria-labelledby="siteSettingsTitle">
+  <form method="dialog" class="cmdk-panel" style="max-width:420px">
+    <h2 id="siteSettingsTitle" class="sec" style="margin-top:0">Site settings</h2>
+    <p class="lead">Progress is stored in this browser via <code class="inline">localStorage</code> (file:// safe).</p>
+    <button type="button" class="pw-btn" id="resetAllProgress">Reset progress</button>
+    <p class="pw-hint">Clears checklist, interview marks, quiz, FSRS-related keys with <code class="inline">pw-</code> prefix, and reloads.</p>
+    <button class="iconbtn" value="cancel">Close</button>
+  </form>
+</dialog>
 
 <div class="shell">
   <!-- ============ SIDEBAR ============ -->
@@ -133,6 +148,7 @@
       <a class="navlink" data-target="config">playwright.config.ts</a>
       <a class="navlink" data-target="pom">POM ↔ fixtures</a>
       <a class="navlink" data-target="data">Data-driven testing</a>
+      <a class="navlink" data-target="framework">Framework Academy</a>
     </details>
 
     <details class="nav-group" data-nav-group="advanced">
@@ -183,6 +199,20 @@
       <a class="navlink" data-target="interview-tier-b">Tier B · Mid</a>
       <a class="navlink" data-target="interview-tier-c">Tier C · Senior</a>
       <a class="navlink" data-target="interview-tier-d">Tier D · Architect</a>
+      <a class="navlink" data-target="framework">Framework scenarios</a>
+      <a class="navlink" data-target="interviewer">Interviewer Mode</a>
+      <a class="navlink" data-target="skills">Skill Modules</a>
+    </details>
+
+    <details class="nav-group" open data-nav-group="readiness">
+      <summary>
+        <svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><use href="#i-target"/></svg>
+        Readiness
+        <svg class="ico chev" viewBox="0 0 18 18" aria-hidden="true"><use href="#i-chev"/></svg>
+      </summary>
+      <a class="navlink" data-target="readiness">Interview readiness</a>
+      <a class="navlink" data-target="mock-exam">Mock exam</a>
+      <a class="navlink" data-target="planner">Study planner</a>
     </details>
 
     <details class="nav-group" open data-nav-group="review">
@@ -203,6 +233,10 @@
         <svg class="ico chev" viewBox="0 0 18 18" aria-hidden="true"><use href="#i-chev"/></svg>
       </summary>
       <a class="navlink" data-target="cheatsheet">Cheat sheet</a>
+      <a class="navlink" data-target="bookmarks">My bookmarks</a>
+      <a class="navlink" data-target="notes">My notes</a>
+      <a class="navlink" data-target="my-cheatsheet">My cheat sheet</a>
+      <a class="navlink" data-target="backup">Backup / restore</a>
       <a class="navlink" data-target="resources">Resources</a>
     </details>
   </nav>
@@ -290,6 +324,20 @@
         <p class="tile-note">FSRS forgetting curve across your deck, next 30 days.</p>
       </section>
 
+      <!-- Interview readiness ring -->
+      <section class="tile span-4" aria-labelledby="dashReadinessTitle">
+        <div class="tile-head">
+          <svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><use href="#i-target"/></svg>
+          <h3 id="dashReadinessTitle">Interview readiness</h3>
+        </div>
+        <div class="stat-xl" data-dash="readiness">—<small>overall score</small></div>
+        <p class="tile-note">EWMA accuracy + FSRS retention + exercise coverage.</p>
+        <div class="tile-actions">
+          <button type="button" class="pw-btn tiny" data-go="readiness">View breakdown</button>
+          <button type="button" class="pw-btn ghost tiny" data-go="mock-exam">Mock exam</button>
+        </div>
+      </section>
+
       <!-- Topic mastery -->
       <section class="tile span-5" aria-labelledby="dashTopicTitle">
         <div class="tile-head">
@@ -297,6 +345,23 @@
           <h3 id="dashTopicTitle">Topic mastery</h3>
         </div>
         <div data-dash="topics"></div>
+      </section>
+
+      <section class="tile span-7" aria-labelledby="dashCoverageTitle">
+        <div class="tile-head">
+          <svg class="ico" viewBox="0 0 18 18" aria-hidden="true"><use href="#i-grid"/></svg>
+          <h3 id="dashCoverageTitle">Topic coverage</h3>
+        </div>
+        <div class="coverage-badges" role="list">
+          <a class="pill jump" role="listitem" href="#api">API Testing</a>
+          <a class="pill jump" role="listitem" href="#ci">CI/CD</a>
+          <a class="pill jump" role="listitem" href="#visual">Visual</a>
+          <a class="pill jump" role="listitem" href="#a11y-wcag">Accessibility</a>
+          <a class="pill jump" role="listitem" href="#agents-mcp">AI/MCP</a>
+          <a class="pill jump" role="listitem" href="#ci">Docker</a>
+          <a class="pill jump" role="listitem" href="#xpath">XPath</a>
+          <a class="pill jump" role="listitem" href="#fsrs">FSRS</a>
+        </div>
       </section>
 
       <!-- Study checklist -->
@@ -387,6 +452,31 @@
     <h2 class="sec">Learning roadmap</h2>
     <p class="lead">A realistic ~4 week path, assuming 1–2 hours per day.</p>
 
+    <div class="learning-path" id="learningPath" aria-label="Learning path stages">
+      <svg class="chart learning-path-svg" viewBox="0 0 640 88" role="img" aria-label="Learning path from Beginner to Architect">
+        <title>Learning path: Beginner → Intermediate → Advanced → Senior → Architect</title>
+        <defs>
+          <linearGradient id="pathGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="var(--accent)"/><stop offset="100%" stop-color="var(--accent-2)"/>
+          </linearGradient>
+        </defs>
+        <line x1="48" y1="36" x2="592" y2="36" stroke="var(--border-strong)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="48" y1="36" x2="592" y2="36" stroke="url(#pathGrad)" stroke-width="3" stroke-linecap="round" stroke-dasharray="544" pathLength="544" data-path-progress="0"/>
+        <g data-path-stage="beginner"><circle cx="48" cy="36" r="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/><text x="48" y="68" text-anchor="middle" fill="var(--muted)" font-size="11">Beginner</text><text x="48" y="40" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700" data-path-pct>—</text></g>
+        <g data-path-stage="intermediate"><circle cx="188" cy="36" r="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/><text x="188" y="68" text-anchor="middle" fill="var(--muted)" font-size="11">Intermediate</text><text x="188" y="40" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700" data-path-pct>—</text></g>
+        <g data-path-stage="advanced"><circle cx="328" cy="36" r="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/><text x="328" y="68" text-anchor="middle" fill="var(--muted)" font-size="11">Advanced</text><text x="328" y="40" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700" data-path-pct>—</text></g>
+        <g data-path-stage="senior"><circle cx="468" cy="36" r="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/><text x="468" y="68" text-anchor="middle" fill="var(--muted)" font-size="11">Senior</text><text x="468" y="40" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700" data-path-pct>—</text></g>
+        <g data-path-stage="architect"><circle cx="592" cy="36" r="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/><text x="592" y="68" text-anchor="middle" fill="var(--muted)" font-size="11">Architect</text><text x="592" y="40" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700" data-path-pct>—</text></g>
+      </svg>
+      <div class="path-links">
+        <a class="pill jump" href="#setup" data-path-link="beginner">Beginner sections</a>
+        <a class="pill jump" href="#locators" data-path-link="intermediate">Intermediate</a>
+        <a class="pill jump" href="#fixtures" data-path-link="advanced">Advanced</a>
+        <a class="pill jump" href="#ci" data-path-link="senior">Senior</a>
+        <a class="pill jump" href="#interview-tier-d" data-path-link="architect">Architect</a>
+      </div>
+    </div>
+
     <h3 class="sub">Theory: skill layers</h3>
     <p class="lead">Learn Playwright in layers, not as a pile of APIs. First master <strong>finding and waiting</strong> (locators + auto-wait) — that alone removes most beginner flakes. Next learn <strong>expressing intent</strong> (assertions, hooks, config). Then learn <strong>scaling a suite</strong> (fixtures, POM, auth, data). Finally learn <strong>operating in CI</strong> (traces, sharding, Docker). Skipping ahead to Page Objects before you understand locators usually produces brittle wrappers around brittle selectors.</p>
 
@@ -414,6 +504,30 @@
   <section class="page hidden" id="setup">
     <h2 class="sec">Install &amp; project setup</h2>
     <p class="lead">Requirements: Node.js 18+ (20 LTS recommended), npm, and VS Code with the official <em>Playwright Test for VSCode</em> extension.</p>
+
+    <div class="arch-diagram">
+      <svg class="chart" viewBox="0 0 600 160" role="img" aria-label="Playwright architecture: client to WebSocket or CDP to browser">
+        <title>Playwright architecture: Test client → WebSocket / CDP → Browser</title>
+        <rect x="24" y="48" width="140" height="64" rx="10" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="94" y="78" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="600">Test client</text>
+        <text x="94" y="96" text-anchor="middle" fill="var(--muted)" font-size="11">@playwright/test</text>
+        <line x1="164" y1="80" x2="236" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#setupArrow)"/>
+        <text x="200" y="68" text-anchor="middle" fill="var(--accent)" font-size="10">WebSocket</text>
+        <text x="200" y="100" text-anchor="middle" fill="var(--muted)" font-size="10">/ CDP</text>
+        <rect x="236" y="48" width="140" height="64" rx="10" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="306" y="78" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="600">Protocol</text>
+        <text x="306" y="96" text-anchor="middle" fill="var(--muted)" font-size="11">out-of-process</text>
+        <line x1="376" y1="80" x2="448" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#setupArrow)"/>
+        <rect x="448" y="48" width="128" height="64" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="512" y="78" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="600">Browser</text>
+        <text x="512" y="96" text-anchor="middle" fill="var(--muted)" font-size="11">Chromium…</text>
+        <defs>
+          <marker id="setupArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
 
     <h3 class="sub">What gets installed</h3>
     <p class="lead"><code class="inline">@playwright/test</code> is both the test runner and the browser automation library. Separately, <code class="inline">npx playwright install</code> downloads browser binaries (Chromium, Firefox, WebKit) into a local cache — they are not the browsers already on your machine. That isolation is intentional: CI and laptops run the same browser builds, so “works on my Chrome” drift is rare.</p>
@@ -1516,6 +1630,35 @@ setup('authenticate', async ({ page }) =&gt; {
     <h2 class="sec">POM ↔ fixtures — a trade-off, not doctrine</h2>
     <p class="lead">The field disagrees in 2026. Official docs still document Page Object Model; many practitioners prefer <strong>composable fixtures around business actions</strong> for small-to-medium suites. This curriculum teaches <em>both</em> and a decision rule — not “always POM.”</p>
 
+    <div class="arch-diagram">
+      <svg class="chart" viewBox="0 0 600 160" role="img" aria-label="Framework layers from tests down to Playwright">
+        <title>Framework layers: Tests → Fixtures → Pages → Utils → API layer → Playwright</title>
+        <defs>
+          <marker id="pomArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <rect x="8" y="52" width="78" height="56" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="47" y="84" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Tests</text>
+        <line x1="86" y1="80" x2="102" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pomArrow)"/>
+        <rect x="104" y="52" width="78" height="56" rx="8" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="143" y="84" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Fixtures</text>
+        <line x1="182" y1="80" x2="198" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pomArrow)"/>
+        <rect x="200" y="52" width="78" height="56" rx="8" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="239" y="84" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Pages</text>
+        <line x1="278" y1="80" x2="294" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pomArrow)"/>
+        <rect x="296" y="52" width="78" height="56" rx="8" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="335" y="84" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Utils</text>
+        <line x1="374" y1="80" x2="390" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pomArrow)"/>
+        <rect x="392" y="52" width="86" height="56" rx="8" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="435" y="84" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">API layer</text>
+        <line x1="478" y1="80" x2="494" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pomArrow)"/>
+        <rect x="496" y="52" width="96" height="56" rx="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="544" y="84" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Playwright</text>
+        <text x="300" y="140" text-anchor="middle" fill="var(--muted)" font-size="11">Specs stay thin; fixtures compose intents; pages bind selectors; utils/API stay shared.</text>
+      </svg>
+    </div>
+
     <div class="card note">
       <strong>Decision rule:</strong>
       <ul class="tight">
@@ -1697,6 +1840,101 @@ export function newUser(overrides: Partial&lt;User&gt; = {}): User {
   await expect(page.getByTestId(`order-${id}`)).toBeVisible();
 });</code></pre>
     <div class="card note">Set up state through the fastest door (API/DB) and verify through the UI. It's faster and far less flaky than clicking through prerequisites.</div>
+  </section>
+
+  <!-- ---------------- FRAMEWORK ACADEMY ---------------- -->
+  <section class="page hidden" id="framework">
+    <h2 class="sec">Framework Academy</h2>
+    <p class="lead">Zero-to-enterprise Playwright + TypeScript framework engineering: fixtures-first, thin POM, layered architecture. Lessons, MCQs, coding exercises, and interview scenarios — all authored in <code class="inline">interview-qa/framework/</code>.</p>
+    <div class="card tip"><strong>Isolation:</strong> coding exercises run via <code class="inline">npm --prefix practice-suite run exercise</code> in an isolated workspace that never touches <code class="inline">@bank-demo</code> / <code class="inline">@external</code>.</div>
+    <div id="fwAcademyMount" class="fw-academy" aria-live="polite"></div>
+  </section>
+
+  <section class="page hidden" id="framework-lesson">
+    <h2 class="sec">Framework lesson</h2>
+    <div id="fwLessonMount" class="fw-lesson-mount">
+      <p class="muted">Pick a lesson from <a href="#framework" data-go="framework">Framework Academy</a>.</p>
+    </div>
+  </section>
+
+  <!-- ---------------- INTERVIEWER MODE ---------------- -->
+  <section class="page hidden" id="interviewer">
+    <h2 class="sec">Interviewer Mode</h2>
+    <p class="lead">Run Playwright + TypeScript interviews with structured kits, model answers, hint ladders, and rubric scoring. Content lives in <code class="inline">interview-qa/interviewer/</code> — local scoring only, never uploaded.</p>
+    <div class="card tip"><strong>Live coding:</strong> tasks run via <code class="inline">npm --prefix practice-suite run exercise:interviewer</code> in an isolated workspace excluded from <code class="inline">@bank-demo</code> / <code class="inline">@external</code>.</div>
+    <div id="ivModeMount" class="iv-mode" aria-live="polite"></div>
+  </section>
+
+  <section class="page hidden" id="interviewer-question">
+    <h2 class="sec">Interview question</h2>
+    <div id="ivQuestionMount" class="iv-question-mount">
+      <p class="muted">Pick a question from <a href="#interviewer" data-go="interviewer">Interviewer Mode</a>.</p>
+    </div>
+  </section>
+
+  <section class="page hidden" id="interviewer-kit">
+    <h2 class="sec">Interview kit</h2>
+    <div id="ivKitMount" class="iv-kit-mount">
+      <p class="muted">Pick a kit from <a href="#interviewer" data-go="interviewer">Interviewer Mode</a>.</p>
+    </div>
+  </section>
+
+  <section class="page hidden" id="interviewer-craft">
+    <h2 class="sec">Interviewer craft</h2>
+    <div id="ivCraftMount" class="iv-craft-mount">
+      <p class="muted">Pick a craft lesson from <a href="#interviewer" data-go="interviewer">Interviewer Mode</a>.</p>
+    </div>
+  </section>
+
+  <!-- ---------------- SKILL MODULES (SK-*) ---------------- -->
+  <section class="page hidden" id="skills">
+    <h2 class="sec">Skill Modules</h2>
+    <p class="lead">Adjacent SDET interview skills: API testing, SQL, TypeScript, Git, HTTP, and security awareness. Content in <code class="inline">interview-qa/skills/</code>.</p>
+    <div class="card tip"><strong>Exercises:</strong> <code class="inline">npm --prefix practice-suite run exercise:skills</code> — tagged <code class="inline">@skills</code>, isolated from <code class="inline">@bank-demo</code>.</div>
+    <div id="skHubMount" class="sk-hub" aria-live="polite"></div>
+  </section>
+  <section class="page hidden" id="skills-lesson">
+    <h2 class="sec">Skill lesson</h2>
+    <div id="skLessonMount"><p class="muted">Pick a lesson from <a href="#skills" data-go="skills">Skill Modules</a>.</p></div>
+  </section>
+
+  <!-- ---------------- READINESS (RS-*) ---------------- -->
+  <section class="page hidden" id="readiness">
+    <h2 class="sec">Interview readiness</h2>
+    <p class="lead">Deterministic score from your local MCQ attempts, FSRS retrievability, and exercise completion — no ML, no backend.</p>
+    <div id="readinessMount" class="rs-page" aria-live="polite"></div>
+  </section>
+
+  <!-- ---------------- MOCK EXAM (MX-*) ---------------- -->
+  <section class="page hidden" id="mock-exam">
+    <h2 class="sec">Mock exam</h2>
+    <p class="lead">Seeded stratified sampling from Skills + Framework + Quiz MCQs. Wrong answers feed FSRS review.</p>
+    <div id="mockExamMount" class="mx-page"></div>
+  </section>
+
+  <!-- ---------------- STUDY PLANNER (PL-*) ---------------- -->
+  <section class="page hidden" id="planner">
+    <h2 class="sec">Study planner</h2>
+    <p class="lead">Auto-generated 7-day crash or 30-day full plans from readiness weak spots — interleaved, budget-aware.</p>
+    <div id="plannerMount" class="pl-page"></div>
+  </section>
+
+  <!-- ---------------- PERSONAL KNOWLEDGE (PK-*) ---------------- -->
+  <section class="page hidden" id="bookmarks">
+    <h2 class="sec">My bookmarks</h2>
+    <div id="bookmarksMount" class="pk-page"></div>
+  </section>
+  <section class="page hidden" id="notes">
+    <h2 class="sec">My notes</h2>
+    <div id="notesMount" class="pk-page"></div>
+  </section>
+  <section class="page hidden" id="my-cheatsheet">
+    <h2 class="sec">My cheat sheet</h2>
+    <div id="cheatsheetMount" class="pk-page pk-printable"></div>
+  </section>
+  <section class="page hidden" id="backup">
+    <h2 class="sec">Backup &amp; restore</h2>
+    <div id="backupMount" class="pk-page"></div>
   </section>
 
   <!-- ---------------- AUTH ---------------- -->
@@ -2230,6 +2468,27 @@ npx playwright test --grep @regression --shard=${SHARD}/8</code></pre>
     <h2 class="sec">CI/CD &amp; Docker</h2>
     <p class="lead">CI is where E2E proves its value: every PR gets a repeatable signal. The theory is simple — same browsers, same env vars, parallel shards, artefacts on failure — so green means shippable and red is debuggable.</p>
 
+    <div class="arch-diagram">
+      <svg class="chart" viewBox="0 0 600 160" role="img" aria-label="CI cadence: PR gate versus nightly shards versus weekly cross-browser">
+        <title>CI flow: PR gate vs nightly shards vs weekly cross-browser</title>
+        <rect x="16" y="28" width="176" height="104" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="104" y="56" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700">PR gate</text>
+        <text x="104" y="78" text-anchor="middle" fill="var(--text)" font-size="11">Smoke / shard subset</text>
+        <text x="104" y="96" text-anchor="middle" fill="var(--muted)" font-size="10">Fast feedback</text>
+        <text x="104" y="112" text-anchor="middle" fill="var(--muted)" font-size="10">block merge on red</text>
+        <rect x="212" y="28" width="176" height="104" rx="10" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="300" y="56" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700">Nightly shards</text>
+        <text x="300" y="78" text-anchor="middle" fill="var(--text)" font-size="11">Full suite · --shard</text>
+        <text x="300" y="96" text-anchor="middle" fill="var(--muted)" font-size="10">Merge blob reports</text>
+        <text x="300" y="112" text-anchor="middle" fill="var(--muted)" font-size="10">depth over speed</text>
+        <rect x="408" y="28" width="176" height="104" rx="10" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="496" y="56" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700">Weekly</text>
+        <text x="496" y="78" text-anchor="middle" fill="var(--text)" font-size="11">Cross-browser matrix</text>
+        <text x="496" y="96" text-anchor="middle" fill="var(--muted)" font-size="10">Chromium · Firefox</text>
+        <text x="496" y="112" text-anchor="middle" fill="var(--muted)" font-size="10">· WebKit</text>
+      </svg>
+    </div>
+
     <h3 class="sub">Theory: make failures actionable</h3>
     <ul class="tight">
       <li><strong>Parity.</strong> Official Playwright Docker images match browser binaries to <code class="inline">@playwright/test</code>. Local/CI skew is a common source of “only fails in pipeline”.</li>
@@ -2284,6 +2543,48 @@ jobs:
       - run: npx playwright merge-reports --reporter html ./all-blob-reports
       - uses: actions/upload-artifact@v4
         with: { name: html-report, path: playwright-report }</code></pre>
+
+    <h3 class="sub">Same pipeline, four CI providers (compare-and-contrast)</h3>
+    <p class="lead">The shape never changes — install → browsers → run sharded → upload artifacts → merge report. Only the YAML dialect and secret-injection syntax differ. Full write-up: <a href="interview/14-ci-deep-dive.md" target="_blank" rel="noopener">interview-qa/14-ci-deep-dive.md</a>.</p>
+    <pre data-lang="groovy"><code>// Jenkinsfile
+pipeline {
+  agent { docker { image 'mcr.microsoft.com/playwright:v1.55.0-noble' } }
+  environment { BASE_URL = credentials('base-url') }
+  stages {
+    stage('Install') { steps { sh 'npm ci' } }
+    stage('Test') {
+      matrix {
+        axes { axis { name 'SHARD'; values '1/4','2/4','3/4','4/4' } }
+        stages { stage('Shard') { steps { sh "npx playwright test --shard=${SHARD}" } } }
+      }
+    }
+  }
+  post { always { archiveArtifacts 'playwright-report/**', 'blob-report/**' } }
+}</code></pre>
+    <pre data-lang="yaml"><code># azure-pipelines.yml
+pool: { vmImage: 'ubuntu-latest' }
+strategy: { matrix: { shard1: { SHARD: '1/4' }, shard2: { SHARD: '2/4' } } }
+steps:
+  - task: NodeTool@0
+    inputs: { versionSpec: '20.x' }
+  - script: npm ci
+  - script: npx playwright install --with-deps
+  - script: npx playwright test --shard=$(SHARD)
+    env: { BASE_URL: $(baseUrl) }
+  - task: PublishPipelineArtifact@1
+    condition: always()
+    inputs: { targetPath: 'blob-report', artifact: 'blob-report-$(SHARD)' }</code></pre>
+    <pre data-lang="yaml"><code># .gitlab-ci.yml
+test:
+  image: mcr.microsoft.com/playwright:v1.55.0-noble
+  parallel: { matrix: [{ SHARD: ["1/4", "2/4", "3/4", "4/4"] }] }
+  script:
+    - npm ci
+    - npx playwright test --shard=$SHARD
+  artifacts:
+    when: always
+    paths: [playwright-report/, blob-report/]</code></pre>
+    <div class="card note"><strong>What's actually different across providers:</strong> secret injection (<code class="inline">secrets.*</code> vs <code class="inline">credentials()</code> vs <code class="inline">$(var)</code> vs CI/CD variables), matrix syntax, and artifact APIs. Browser caching, Docker image usage, and sharding strategy are identical everywhere — get that right once and porting between providers is mechanical.</div>
 
     <h3 class="sub">Docker</h3>
     <pre data-lang="dockerfile"><code>FROM mcr.microsoft.com/playwright:v1.55.0-noble
@@ -2947,6 +3248,35 @@ npx playwright install --with-deps</code></pre>
   <!-- ---------------- RESOURCES ---------------- -->
   <section class="page hidden" id="resources">
     <h2 class="sec">Resources</h2>
+
+    <h3 class="sub">How this site is built</h3>
+    <p class="lead">Interview scenarios live as markdown in <code class="inline">interview-qa/</code>. A zero-runtime generator emits SPA data + search index; Pages hosts the static shell. Open locally via <code class="inline">file://</code> — no bundler.</p>
+    <div class="arch-diagram">
+      <svg class="chart" viewBox="0 0 600 160" role="img" aria-label="Content pipeline from interview-qa markdown to GitHub Pages">
+        <title>Content pipeline: interview-qa MD → generator → SPA → Pages</title>
+        <defs>
+          <marker id="pipeArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <rect x="16" y="48" width="118" height="64" rx="10" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="75" y="78" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">interview-qa</text>
+        <text x="75" y="96" text-anchor="middle" fill="var(--muted)" font-size="11">*.md SSOT</text>
+        <line x1="134" y1="80" x2="168" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pipeArrow)"/>
+        <rect x="170" y="48" width="118" height="64" rx="10" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="229" y="78" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">generator</text>
+        <text x="229" y="96" text-anchor="middle" fill="var(--muted)" font-size="11">build-content</text>
+        <line x1="288" y1="80" x2="322" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pipeArrow)"/>
+        <rect x="324" y="48" width="118" height="64" rx="10" fill="var(--panel)" stroke="var(--border)" stroke-width="1.5"/>
+        <text x="383" y="78" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">SPA shell</text>
+        <text x="383" y="96" text-anchor="middle" fill="var(--muted)" font-size="11">learning-site</text>
+        <line x1="442" y1="80" x2="476" y2="80" stroke="var(--accent)" stroke-width="2" marker-end="url(#pipeArrow)"/>
+        <rect x="478" y="48" width="106" height="64" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="531" y="78" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Pages</text>
+        <text x="531" y="96" text-anchor="middle" fill="var(--muted)" font-size="11">static host</text>
+      </svg>
+    </div>
+
     <div class="grid g2">
       <div class="card"><h3 class="sub">Official</h3>
         <ul class="tight">
@@ -3044,13 +3374,13 @@ npx playwright install --with-deps</code></pre>
 
 <script src="vendor/minisearch.js" defer></script>
 <script src="vendor/ts-fsrs.js" defer></script>
-<script src="search-index.js" defer></script>
+<!-- search-index.js is lazy-injected on first search open (see app.js ensureSearchIndex) -->
 <script src="storage.js" defer></script>
 <script src="quiz-data.js" defer></script>
 <script src="interview-data.js" defer></script>
 <script src="interview-essentials-data.js" defer></script>
 <script src="playground-data.js" defer></script>
-<script src="miniapps-data.js" defer></script>
+<!-- miniapps-data.js / gap-practice-data.js lazy-loaded on section navigation -->
 <script src="section-mcq-data.js" defer></script>
 <script src="xpath-data.js" defer></script>
 <script src="xpath-widgets.js" defer></script>
@@ -3063,8 +3393,26 @@ npx playwright install --with-deps</code></pre>
 <script src="bank-demo.js" defer></script>
 <script src="fsrs-app.js" defer></script>
 <script src="gap-pages-data.js" defer></script>
-<script src="gap-practice-data.js" defer></script>
 <script src="gap-practice.js" defer></script>
+<script src="stuck-data.js" defer></script>
+<script src="cases-data.js" defer></script>
+<script src="framework-data.js" defer></script>
+<script src="framework-diagrams.js" defer></script>
+<script src="framework-academy.js" defer></script>
+<script src="interviewer-data.js" defer></script>
+<script src="interviewer-diagrams.js" defer></script>
+<script src="interviewer-mode.js" defer></script>
+<script src="skills-data.js" defer></script>
+<script src="topics-data.js" defer></script>
+<script src="mock-exam-pool.js" defer></script>
+<script src="readiness-engine.js" defer></script>
+<script src="readiness-ui.js" defer></script>
+<script src="skills-modules.js" defer></script>
+<script src="mock-exam.js" defer></script>
+<script src="study-planner.js" defer></script>
+<script src="personal-knowledge.js" defer></script>
+<script src="gamification.js" defer></script>
+<script src="reading-times.js" defer></script>
 <script src="app.js" defer></script>
 <script src="ui-2026.js" defer></script>
 </body>
