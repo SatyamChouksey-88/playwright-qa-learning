@@ -110,31 +110,109 @@
       .sort((a, b) => new Date(a.due || 0) - new Date(b.due || 0));
   }
 
-  function renderCard(host) {
+  let sessionCount = 0;
+  let sessionStart = 0;
+
+  /* Human-readable interval each grade would schedule, shown on the buttons. */
+  function humanDays(days) {
+    if (!Number.isFinite(days) || days <= 0) return '<10m';
+    if (days < 1) return `${Math.max(10, Math.round(days * 24 * 60))}m`;
+    if (days < 30) return `${Math.round(days)}d`;
+    if (days < 365) return `${(days / 30).toFixed(1)}mo`;
+    return `${(days / 365).toFixed(1)}y`;
+  }
+
+  function previewIntervals(host, api) {
+    const Rating = api.Rating || { Again: 1, Hard: 2, Good: 3, Easy: 4 };
+    const now = new Date();
+    for (const name of ['Again', 'Hard', 'Good', 'Easy']) {
+      const slot = host.querySelector(`[data-fsrs-next="${name}"]`);
+      if (!slot) continue;
+      if (!current) { slot.textContent = '—'; continue; }
+      try {
+        const input = {
+          ...current,
+          due: current.due ? new Date(current.due) : now,
+          last_review: current.last_review ? new Date(current.last_review) : undefined,
+        };
+        const next = api.fsrs().next(input, now, Rating[name]).card;
+        const dueAt = next.due instanceof Date ? next.due : new Date(next.due);
+        slot.textContent = humanDays((dueAt.getTime() - now.getTime()) / 86400000);
+      } catch {
+        slot.textContent = '—';
+      }
+    }
+  }
+
+  /* Cards store only the prompt; pull the model answer back out of the bank. */
+  function answerFor(card) {
+    if (!card?.id) return null;
+    const [kind, rawId] = String(card.id).split(':');
+    const pools = [];
+    if (kind === 'interview' && window.INTERVIEW_DATA) {
+      for (const key of ['tierA', 'tierB', 'tierC', 'tierD']) {
+        pools.push(...(window.INTERVIEW_DATA[key]?.questions || []));
+      }
+    }
+    if (kind === 'essentials' && window.INTERVIEW_ESSENTIALS?.categories) {
+      for (const cat of window.INTERVIEW_ESSENTIALS.categories) pools.push(...(cat.questions || []));
+    }
+    return pools.find((q) => q.id === rawId) || null;
+  }
+
+  function renderCard(host, api) {
     const title = host.querySelector('[data-fsrs-title]');
     const meta = host.querySelector('[data-fsrs-meta]');
+    const kind = host.querySelector('[data-fsrs-kind]');
     const empty = host.querySelector('[data-fsrs-empty]');
     const grades = host.querySelector('[data-fsrs-grades]');
+    const card = host.querySelector('[data-fsrs-card]');
+    const answer = host.querySelector('[data-fsrs-answer]');
+    const progress = host.querySelector('[data-fsrs-progress]');
+    const session = host.querySelector('[data-fsrs-session]');
+
+    if (answer) answer.hidden = true;
+    if (session) session.textContent = `${sessionCount} graded this session`;
+    if (progress) {
+      const total = Math.max(sessionStart, 1);
+      progress.style.width = Math.round((sessionCount / total) * 100) + '%';
+    }
+
     if (!current) {
-      title.textContent = 'All caught up';
-      meta.textContent = 'No cards due. Export your progress or come back later.';
+      if (card) card.hidden = true;
       empty.hidden = false;
       grades.hidden = true;
       return;
     }
+    if (card) card.hidden = false;
     empty.hidden = true;
     grades.hidden = false;
     title.textContent = current.title || current.id;
-    meta.textContent = `${current.kind || ''} · reps ${current.reps || 0} · lapses ${current.lapses || 0}`;
+    if (kind) kind.textContent = current.kind === 'essentials' ? 'Interview essentials' : 'Interview bank';
+    meta.textContent = `Reps ${current.reps || 0} · lapses ${current.lapses || 0}` +
+      (current.stability ? ` · stability ${Number(current.stability).toFixed(1)}d` : ' · new card');
+
+    if (answer) {
+      const model = answerFor(current);
+      answer.innerHTML = model
+        ? `<div class="ideal"><strong>Ideal approach</strong>${model.ideal || model.a || ''}</div>` +
+          (model.stuck ? `<div class="stuck"><strong>Where candidates get stuck</strong>${model.stuck}</div>` : '')
+        : '<p class="lead" style="margin:0">Answer out loud, then open the source section to check yourself.</p>';
+      if (typeof window.enhanceCodeBlocks === 'function') window.enhanceCodeBlocks(answer);
+    }
+    if (api) previewIntervals(host, api);
   }
 
   async function refresh(host, api) {
     const cards = await ensureSeeded(api);
     queue = dueCards(cards);
+    if (!sessionStart) sessionStart = queue.length;
     current = queue[0] || null;
-    const dueEl = document.querySelector('[data-fsrs-due]');
-    if (dueEl) dueEl.textContent = String(queue.length);
-    renderCard(host);
+    document.querySelectorAll('[data-fsrs-due]').forEach((el) => {
+      el.textContent = String(queue.length);
+      if (el.dataset.zero !== undefined) el.dataset.zero = queue.length ? '0' : '1';
+    });
+    renderCard(host, api);
     const live = document.getElementById('ariaLive');
     if (live) live.textContent = queue.length ? `${queue.length} cards due` : 'Review queue empty';
   }
@@ -160,7 +238,20 @@
       kind: current.kind,
     };
     await putCard(nextCard);
+    logReview();
+    sessionCount += 1;
     await refresh(host, api);
+    window.dispatchEvent(new CustomEvent('pw:review-graded'));
+  }
+
+  /* Lightweight review history for the dashboard heatmap + streak. */
+  function logReview() {
+    try {
+      const log = JSON.parse(localStorage.getItem('pw-fsrs-log') || '[]');
+      const list = Array.isArray(log) ? log : [];
+      list.push(Date.now());
+      localStorage.setItem('pw-fsrs-log', JSON.stringify(list.slice(-4000)));
+    } catch { /* storage disabled */ }
   }
 
   async function exportJson() {
@@ -184,6 +275,7 @@
   }
 
   window.FSRSApp = {
+    getCards: getAllCards,
     async mount(host) {
       if (!host) return;
       const api = getFsrsApi();
@@ -203,6 +295,20 @@
         if (!file) return;
         await importJson(file);
         await refresh(host, api);
+      });
+      const answer = host.querySelector('[data-fsrs-answer]');
+      const revealBtn = host.querySelector('[data-fsrs-reveal]');
+      revealBtn?.addEventListener('click', () => {
+        if (answer) answer.hidden = !answer.hidden;
+        revealBtn.setAttribute('aria-expanded', String(!answer?.hidden));
+      });
+      document.addEventListener('keydown', (e) => {
+        const page = document.getElementById('fsrs');
+        if (e.code !== 'Space' || !page || page.classList.contains('hidden')) return;
+        const tag = e.target?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON' || e.target?.isContentEditable) return;
+        e.preventDefault();
+        revealBtn?.click();
       });
       host.querySelector('[data-fsrs-open]')?.addEventListener('click', () => {
         if (current?.target && typeof window.showSection === 'function') window.showSection(current.target);

@@ -1097,11 +1097,16 @@ function enhanceCodeBlocks(root = document) {
     codeEl.dataset.enhanced = '1';
     const pre = codeEl.parentElement;
     const raw = codeEl.textContent;
-    codeEl.innerHTML = highlight(raw);
+    const lines = raw.replace(/\n$/, '').split('\n');
+    // Highlight line-by-line so the gutter can number each row.
+    const numbered = lines.length >= 4;
+    codeEl.innerHTML = numbered
+      ? lines.map(line => `<span class="cl">${highlight(line) || '&nbsp;'}</span>`).join('')
+      : highlight(raw);
 
     if (!pre.parentElement.classList.contains('codewrap')) {
       const wrap = document.createElement('div');
-      wrap.className = 'codewrap';
+      wrap.className = numbered ? 'codewrap is-numbered' : 'codewrap';
       pre.parentNode.insertBefore(wrap, pre);
       wrap.appendChild(pre);
 
@@ -1139,6 +1144,7 @@ function enhanceCodeBlocks(root = document) {
 }
 
 enhanceCodeBlocks(document);
+window.enhanceCodeBlocks = enhanceCodeBlocks;
 
 function renderSkillsPracticeBlock(sectionKey, hostId, leadId) {
   const data = window.SKILLS_PRACTICE?.[sectionKey];
@@ -1561,6 +1567,8 @@ function loadMiniSearch() {
 }
 
 const miniSearch = loadMiniSearch();
+window.PWMiniSearch = miniSearch;
+window.PW_STUDY_ITEMS = STUDY_ITEMS;
 
 renderStudyChecklist();
 renderPlayground();
@@ -1682,6 +1690,43 @@ window.addEventListener('scroll', () => {
 backTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
 /* ---------------- Quiz ---------------- */
+/* Score donut + breakdown, drawn inline so the results screen needs no library. */
+function quizResultCard(correct, total, pct) {
+  const wrong = total - correct;
+  const r = 42;
+  const c = 2 * Math.PI * r;
+  const tone = pct >= 80 ? 'pass' : pct >= 60 ? 'warn' : 'fail';
+  const verdict = pct >= 80
+    ? 'Interview-ready threshold met. Random drill next.'
+    : pct >= 60
+      ? 'Borderline. Re-read Locators, Fixtures, Waiting and Anti-patterns, then retry.'
+      : 'Work through Core API and the Flake playbook again, then retake.';
+  return `
+    <div class="card quiz-result">
+      <svg class="chart" width="112" height="112" viewBox="0 0 112 112" role="img"
+           aria-label="Score ${correct} of ${total}, ${pct} percent">
+        <circle class="ring-track" cx="56" cy="56" r="${r}" stroke-width="9"></circle>
+        <circle cx="56" cy="56" r="${r}" fill="none" stroke="var(--${tone})" stroke-width="9"
+                stroke-linecap="round" transform="rotate(-90 56 56)"
+                stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - pct / 100)).toFixed(1)}"></circle>
+        <text x="56" y="56" class="ring-num" style="font-size:22px">${pct}%</text>
+      </svg>
+      <div>
+        <h3 class="sub" style="margin-top:0">Finished — ${correct}/${total}</h3>
+        <div class="pillrow" style="margin:0 0 10px">
+          <span class="pill pass">${correct} correct</span>
+          <span class="pill fail">${wrong} missed</span>
+          <span class="pill ${tone}">${pct}%</span>
+        </div>
+        <p class="lead" style="margin:0 0 12px">${verdict}</p>
+        <div class="pillrow" style="margin:0">
+          <button type="button" class="pw-btn tiny" data-go="drill">Random drill</button>
+          <button type="button" class="pw-btn ghost tiny" data-go="flake">Flake playbook</button>
+        </div>
+      </div>
+    </div>`;
+}
+
 const container = document.getElementById('quizContainer');
 const scoreEl = document.getElementById('score');
 const totalEl = document.getElementById('total');
@@ -1723,12 +1768,7 @@ function renderQuiz() {
         if (answered === window.QUIZ.length) {
           const pct = Math.round(score / window.QUIZ.length * 100);
           doneEl.classList.remove('hidden');
-          const verdict = pct >= 80
-            ? `<div class="empty-state" style="border-style:solid"><strong class="pill pass">Pass ${pct}%</strong>Interview-ready threshold met. Try Random drill next.</div>`
-            : pct >= 60
-              ? `<div class="empty-state"><strong class="pill warn">Borderline ${pct}%</strong>Re-read Locators, Fixtures, Waiting, and Anti-patterns, then retry.</div>`
-              : `<div class="empty-state"><strong class="pill fail">Needs work ${pct}%</strong>Work through Core API + Flake playbook again, then retake.</div>`;
-          doneEl.innerHTML = `<h3 class="sub">Finished — ${score}/${window.QUIZ.length}</h3>${verdict}`;
+          doneEl.innerHTML = quizResultCard(score, window.QUIZ.length, pct);
           if (live) live.textContent = `Quiz finished ${score} of ${window.QUIZ.length}, ${pct} percent`;
           if (pct >= 80) {
             studyDone.add('quiz');
