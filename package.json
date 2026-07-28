@@ -7,10 +7,26 @@
   "scripts": {
     "build:content": "node tools/content/build-content.mjs",
     "check:content": "node tools/content/build-content.mjs --check",
+    "check:metrics": "node tools/content/check-metrics.mjs",
+    "test:readiness": "node tools/readiness/readiness.test.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:bank-demo": "npm --prefix practice-suite run test:bank-demo"
   },
+  "keywords": [
+    "playwright",
+    "playwright-test",
+    "qa",
+    "sdet",
+    "test-automation",
+    "e2e-testing",
+    "interview-prep",
+    "accessibility-testing",
+    "typescript",
+    "page-object-model",
+    "ci-cd",
+    "learning-resources"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SatyamChouksey-88/playwright-qa-learning.git"
