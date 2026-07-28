@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Playwright + TypeScript — Study Material</title>
-<meta name="description" content="A complete, self-contained study guide for Playwright test automation with TypeScript: setup, locators, assertions, fixtures, POM, API testing, CI, cheatsheet, 117 scenario interview questions plus essentials (HR/QA/BDD/Git), and a quiz." />
+<meta name="description" content="Playwright + TypeScript interview &amp; portfolio guide: locators, fixtures↔POM, ARIA snapshots, Clock, WebAuthn, Agents/MCP governance, API/CI, Bank Demo path, 117-scenario bank + essentials, quiz. Opens from file:// with zero install." />
 <link rel="stylesheet" href="styles.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>" />
 </head>
@@ -28,6 +28,8 @@
     <h4>Getting started</h4>
     <a class="navlink" data-target="home">Overview</a>
     <a class="navlink" data-target="roadmap">Learning roadmap</a>
+    <a class="navlink" data-target="whats-new">What's new (1.49–1.62)</a>
+    <a class="navlink" data-target="deprecated">Deprecated &amp; discouraged</a>
     <a class="navlink" data-target="setup">Install &amp; project setup</a>
     <a class="navlink" data-target="first">Your first test</a>
     <a class="navlink" data-target="ts">TypeScript essentials</a>
@@ -40,19 +42,23 @@
     <a class="navlink" data-target="waiting">Auto-waiting &amp; timeouts</a>
     <a class="navlink" data-target="frames">Frames, tabs, dialogs</a>
     <a class="navlink" data-target="clipboard">Clipboard &amp; copy/paste</a>
+    <a class="navlink" data-target="clock">Clock API</a>
 
     <h4>Structure</h4>
     <a class="navlink" data-target="hooks">Hooks &amp; test organisation</a>
     <a class="navlink" data-target="fixtures">Fixtures</a>
     <a class="navlink" data-target="config">playwright.config.ts</a>
-    <a class="navlink" data-target="pom">Page Object Model</a>
+    <a class="navlink" data-target="pom">POM ↔ fixtures</a>
     <a class="navlink" data-target="data">Data-driven testing</a>
 
     <h4>Advanced</h4>
     <a class="navlink" data-target="auth">Authentication &amp; state</a>
+    <a class="navlink" data-target="webauthn">WebAuthn / passkeys</a>
     <a class="navlink" data-target="api">API testing</a>
     <a class="navlink" data-target="network">Network mocking</a>
     <a class="navlink" data-target="visual">Visual &amp; a11y testing</a>
+    <a class="navlink" data-target="agents-mcp">Agents, MCP &amp; CLI</a>
+    <a class="navlink" data-target="component-testing">Component testing</a>
     <a class="navlink" data-target="debug">Debugging &amp; reports</a>
     <a class="navlink" data-target="sharding">Sharding</a>
     <a class="navlink" data-target="ci">CI/CD &amp; Docker</a>
@@ -93,27 +99,24 @@
   <section class="page" id="home">
     <div class="hero">
       <h1>Playwright with TypeScript — complete study material</h1>
-      <p>Everything you need to go from zero to writing production-grade end-to-end tests: locators, auto-waiting, fixtures, Page Object Model, API testing, network mocking, CI pipelines, plus a cheat sheet, <strong>UI practice challenges with revealable solutions</strong>, <strong>mini-app challenges with solutions</strong>, a <strong>117-question scenario bank</strong> (Tier A–D) plus an <strong>Interview essentials</strong> pack (HR, smoke/sanity, BDD, Git, MCP), and a scored quiz — all on this site.</p>
+      <p>Playwright + TypeScript for <strong>interview prep and portfolio</strong>: locators, auto-waiting, fixtures, POM↔fixtures trade-offs, API/network, CI, <strong>Agents/MCP governance</strong>, ARIA snapshots, Clock &amp; WebAuthn — plus practice labs, a <strong>117-scenario bank</strong> (Tier A–D), Interview essentials, and a quiz. Opens from <code class="inline">file://</code> with zero install.</p>
       <div class="pillrow">
-        <span class="pill">@playwright/test</span>
+        <span class="pill">@playwright/test ^1.62</span>
         <span class="pill">TypeScript</span>
         <span class="pill">Chromium · Firefox · WebKit</span>
         <span class="pill">170+ interview Q&amp;A</span>
-        <span class="pill">Auto-wait</span>
+        <span class="pill">Agents · MCP · ARIA</span>
         <span class="pill">Trace viewer</span>
       </div>
       <div class="pillrow" style="margin-top:10px">
+        <a class="pill jump" href="#whats-new">What's new →</a>
+        <a class="pill jump" href="#deprecated">Deprecated →</a>
+        <a class="pill jump" href="#agents-mcp">Agents &amp; MCP →</a>
+        <a class="pill jump" href="#pom">POM ↔ fixtures →</a>
         <a class="pill jump" href="#xpath">XPath deep dive →</a>
-        <a class="pill jump" href="#clipboard">Clipboard &amp; copy/paste →</a>
         <a class="pill jump" href="#mistakes">Anti-patterns →</a>
-        <a class="pill jump" href="#mistakes-practice-heading">Mistakes practice →</a>
-        <a class="pill jump" href="#frames-practice-heading">Tabs practice →</a>
-        <a class="pill jump" href="#clipboard-practice-heading">Clipboard practice →</a>
         <a class="pill jump" href="#playground">UI Practice Lab →</a>
-        <a class="pill jump" href="#elements-hub">Elements Hub →</a>
-        <a class="pill jump" href="#miniapps">Mini-app challenges →</a>
         <a class="pill jump" href="#bank-demo">Bank Demo →</a>
-        <a class="pill jump" href="#assessments">Assessments →</a>
         <a class="pill jump" href="#interview">Interview hub →</a>
         <a class="pill jump" href="#interview-essentials">Interview essentials →</a>
       </div>
@@ -173,10 +176,10 @@
       <li><strong>Week 1 — Locators.</strong> Master <code class="inline">getByRole</code>, <code class="inline">getByLabel</code>, <code class="inline">getByTestId</code>, filtering, chaining, and strictness. Then study <a href="#xpath">XPath deep dive</a> for interviews and legacy apps (prefer role locators in new suites).</li>
       <li><strong>Week 2 — Actions &amp; assertions.</strong> click/fill/select/upload, web-first assertions, soft assertions, auto-waiting model and timeouts.</li>
       <li><strong>Week 2 — Structure.</strong> Hooks, describe blocks, tags, annotations, <code class="inline">playwright.config.ts</code>, projects, reporters.</li>
-      <li><strong>Week 3 — Design patterns.</strong> Page Object Model, custom fixtures, component helpers, data-driven tests, faker data.</li>
-      <li><strong>Week 3 — Advanced.</strong> Storage state auth, API testing with <code class="inline">request</code>, route mocking, downloads/uploads, iframes, visual snapshots.</li>
-      <li><strong>Week 4 — Quality &amp; delivery.</strong> Trace Viewer, retries, sharding, GitHub Actions, Docker, reporting, flake triage.</li>
-      <li><strong>Week 4 — Build a portfolio suite.</strong> 20–30 tests against a real demo app, POM + fixtures + CI badge + HTML report published.</li>
+      <li><strong>Week 3 — Design patterns.</strong> Fixtures-first intents + thin page objects when selectors churn; data-driven tests, faker data. Read <a href="#pom">POM ↔ fixtures</a> as a trade-off, not doctrine.</li>
+      <li><strong>Week 3 — Advanced.</strong> Storage state auth, Clock, WebAuthn, API <code class="inline">request</code>, route mocking, ARIA snapshots, downloads/uploads, iframes.</li>
+      <li><strong>Week 4 — Quality &amp; delivery.</strong> Trace Viewer, retries, sharding, GitHub Actions, Docker, reporting, flake triage; skim <a href="#agents-mcp">Agents &amp; MCP</a> governance.</li>
+      <li><strong>Week 4 — Build a portfolio suite.</strong> 20–30 tests against a controllable demo (Bank Demo path), fixtures + thin pages + CI badge + HTML report published.</li>
     </ol>
     <div class="card good"><strong>Practise on this site:</strong>
       <a href="#playground">UI Practice Lab</a>,
@@ -628,13 +631,26 @@ await download.saveAs('./downloads/' + download.suggestedFilename());</code></pr
     <h3 class="sub">Drag &amp; drop, scrolling</h3>
     <pre data-lang="typescript"><code>await page.getByTestId('card-1').dragTo(page.getByTestId('column-done'));
 
-// manual, for finicky HTML5 DnD
+// 1.60+ — external drop of files / clipboard-like data onto a zone
+await page.getByTestId('upload-zone').drop({
+  files: {
+    name: 'invoice.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4'),
+  },
+});
+await page.getByTestId('editor').drop({
+  data: { 'text/plain': 'paste via drop', 'text/uri-list': 'https://example.com' },
+});
+
+// manual, for finicky in-page HTML5 DnD between elements
 await source.hover();
 await page.mouse.down();
 await target.hover();
 await page.mouse.up();
 
 await locator.scrollIntoViewIfNeeded();</code></pre>
+    <div class="card note"><code class="inline">locator.drop()</code> (since <strong>1.60</strong>) synthesizes DataTransfer for drop-target UIs. Prefer <code class="inline">setInputFiles</code> when a real <code class="inline">&lt;input type="file"&gt;</code> exists; use <code class="inline">dragTo</code> for element-to-element moves.</div>
 
     <h3 class="sub">Navigation</h3>
     <pre data-lang="typescript"><code>await page.goto('/checkout');                 // relative to baseURL
@@ -1256,7 +1272,9 @@ export default defineConfig({
       <tr><td><code>dependencies</code></td><td>Run a setup project (login, seed data) before others</td></tr>
       <tr><td><code>webServer</code></td><td>Boots your app before the suite and kills it after</td></tr>
       <tr><td><code>forbidOnly</code></td><td>Fails CI if someone committed <code>test.only</code></td></tr>
+      <tr><td><code>retryStrategy: 'isolated'</code></td><td>1.62 — fresh worker/context on retry (stronger flake isolation)</td></tr>
     </table>
+    <div class="card note"><strong>Docker:</strong> pin an exact Playwright image tag — floating <code class="inline">:latest</code> / <code class="inline">:jammy</code> tags are no longer published. See <a href="#deprecated">Deprecated</a>.</div>
 
     <h3 class="sub">Global setup / teardown</h3>
     <pre data-lang="typescript"><code>// global.setup.ts  (as a project — the modern way)
@@ -1276,15 +1294,24 @@ setup('authenticate', async ({ page }) =&gt; {
 
   <!-- ---------------- POM ---------------- -->
   <section class="page hidden" id="pom">
-    <h2 class="sec">Page Object Model</h2>
-    <p class="lead">Encapsulate locators and user-level actions per page/component so specs read like a user story and selector changes happen in one place.</p>
+    <h2 class="sec">POM ↔ fixtures — a trade-off, not doctrine</h2>
+    <p class="lead">The field disagrees in 2026. Official docs still document Page Object Model; many practitioners prefer <strong>composable fixtures around business actions</strong> for small-to-medium suites. This curriculum teaches <em>both</em> and a decision rule — not “always POM.”</p>
 
-    <h3 class="sub">Theory: separation of concerns</h3>
+    <div class="card note">
+      <strong>Decision rule:</strong>
+      <ul class="tight">
+        <li><strong>Default for new suite code:</strong> fixtures that expose intents (<code class="inline">loginAs('admin')</code>, <code class="inline">seedCart()</code>) — less ceremony, same isolation.</li>
+        <li><strong>Add page/component objects</strong> when the same UI surface is touched by many tests and selectors churn — one place to edit markup bindings.</li>
+        <li><strong>Avoid</strong> mega-base-page inheritance trees and hiding all assertions inside objects (specs become opaque).</li>
+      </ul>
+    </div>
+
+    <h3 class="sub">What POM is good for</h3>
     <ul class="tight">
-      <li><strong>Specs describe intent.</strong> “Login fails for locked user” should not know CSS classes. Page objects hide that detail behind methods like <code class="inline">login()</code> and <code class="inline">expectError()</code>.</li>
-      <li><strong>One reason to change.</strong> When the login form markup changes, you edit <code class="inline">LoginPage</code> once — not dozens of specs.</li>
-      <li><strong>Components scale better than mega-pages.</strong> Header, cart drawer, and table widgets become reusable objects composed into pages.</li>
-      <li><strong>Do not over-abstract.</strong> Tiny one-off screens can stay inline. POM pays off when the same UI is touched by many tests.</li>
+      <li><strong>Specs describe intent.</strong> “Login fails for locked user” should not know CSS classes. Methods like <code class="inline">login()</code> and <code class="inline">expectError()</code> hide that detail.</li>
+      <li><strong>One reason to change.</strong> Login form markup changes → edit <code class="inline">LoginPage</code> once.</li>
+      <li><strong>Components scale.</strong> Header, cart drawer, tables as reusable objects composed into pages.</li>
+      <li><strong>Do not over-abstract.</strong> Tiny one-off screens can stay inline.</li>
     </ul>
 
     <h3 class="sub">Base page</h3>
@@ -1366,7 +1393,28 @@ test.describe('Login', () =&gt; {
   });
 });</code></pre>
 
-    <div class="card good"><strong>POM rules:</strong> expose <code class="inline">Locator</code>s (not raw strings) · keep assertions thin or in dedicated <code class="inline">expectX()</code> methods · never put <code class="inline">test()</code> inside a page object · one class per page/component · return new page objects from navigation methods when it helps chaining.</div>
+    <div class="card good"><strong>POM rules (when you use it):</strong> expose <code class="inline">Locator</code>s · keep most assertions in tests · never put <code class="inline">test()</code> inside a page object · prefer composition over deep inheritance · inject page objects via <strong>fixtures</strong> (<code class="inline">{ loginPage }</code>) rather than <code class="inline">new LoginPage(page)</code> in every file.</div>
+
+    <h3 class="sub">Fixtures-first alternative (same isolation, less ceremony)</h3>
+    <pre data-lang="typescript"><code>// fixtures/test-fixtures.ts — business actions without a class hierarchy
+import { test as base, expect } from '@playwright/test';
+
+export const test = base.extend<{ asUser: (role: 'admin' | 'user') => Promise&lt;void&gt; }>({
+  asUser: async ({ page }, use) =&gt; {
+    await use(async (role) =&gt; {
+      // API login or storageState per role
+      await page.goto('/app');
+      await expect(page.getByRole('navigation')).toBeVisible();
+    });
+  },
+});
+
+test('admin can open settings', async ({ page, asUser }) =&gt; {
+  await asUser('admin');
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+});</code></pre>
+    <div class="card warn"><strong>Portfolio honesty:</strong> this site teaches the trade-off; the practice suite is moving to fixtures-first + thin pages against Bank Demo. External demo specs stay tagged <code class="inline">@external</code>.</div>
   </section>
 
   <!-- ---------------- DATA ---------------- -->
@@ -1485,6 +1533,16 @@ test('viewer cannot see admin menu', async ({ page }) =&gt; {
 const { token } = await res.json();
 
 await context.addInitScript(t =&gt; localStorage.setItem('token', t as string), token);</code></pre>
+
+    <h3 class="sub">page.localStorage / sessionStorage (1.61+)</h3>
+    <p class="lead">First-class storage helpers — no more <code class="inline">page.evaluate(() =&gt; localStorage…)</code> for common cases. <code class="inline">storageState</code> can also carry <strong>IndexedDB</strong> and (from <strong>1.62</strong>) WebAuthn credentials — see <a href="#webauthn">WebAuthn / passkeys</a>.</p>
+    <pre data-lang="typescript"><code>await page.goto('/app');
+await page.localStorage.setItem('onboarding_seen', '1');
+expect(await page.localStorage.getItem('token')).toBeTruthy();
+await page.sessionStorage.clear();
+
+// Persist richer state for reuse
+await context.storageState({ path: '.auth/admin.json', indexedDB: true });</code></pre>
     <div class="card warn">Storage state files contain live sessions — add <code class="inline">.auth/</code> to <code class="inline">.gitignore</code> and keep credentials in env vars or a secret manager.</div>
   </section>
 
@@ -1655,6 +1713,20 @@ await expect(page.getByTestId('price-card')).toHaveScreenshot('price-card.png');
     <pre data-lang="bash"><code>npx playwright test --update-snapshots        # regenerate baselines
 npx playwright test --update-snapshots=changed</code></pre>
     <div class="card warn">Baselines are OS- and browser-specific. Generate them in the same Docker image CI uses, or you will chase phantom diffs (font rendering).</div>
+
+    <h3 class="sub">ARIA snapshots — structure without pixels</h3>
+    <p class="lead"><code class="inline">toMatchAriaSnapshot()</code> (locators since <strong>1.49</strong>; page-level since <strong>1.60</strong>) asserts the accessibility tree — OS-independent, great for layout/role regressions where pixel diffs would flake on fonts.</p>
+    <pre data-lang="typescript"><code>await expect(page.getByRole('navigation')).toMatchAriaSnapshot(`
+  - navigation:
+    - link "Home"
+    - link "Accounts"
+    - link "Transfer"
+`);
+
+// Generate / update: npx playwright test --update-snapshots
+await expect(page).toMatchAriaSnapshot({ name: 'dashboard.aria.yml' });</code></pre>
+    <div class="card good"><strong>When to use which:</strong> pixel screenshots for CSS/visual polish; ARIA snapshots for “did the landmark structure / names change?” — often a better CI default for apps with dynamic chrome.</div>
+    <div class="card bad"><strong>Removed:</strong> <code class="inline">page.accessibility</code> snapshot API is <strong>gone in 1.57</strong>. Use axe-core + ARIA snapshots instead — see <a href="#deprecated">Deprecated</a>.</div>
 
     <h3 class="sub">Accessibility with axe-core</h3>
     <pre data-lang="bash"><code>npm i -D @axe-core/playwright</code></pre>
@@ -2017,6 +2089,150 @@ CMD ["npx", "playwright", "test"]</code></pre>
     </ul>
   </section>
 
+  <!-- ---------------- WHAT'S NEW ---------------- -->
+  <section class="page hidden" id="whats-new">
+    <h2 class="sec">What's new in Playwright (1.49 → 1.62)</h2>
+    <p class="lead">Version-tagged map of features this curriculum now teaches. Pin your suite to a known <code class="inline">@playwright/test</code> version — APIs below need the listed minimum. Official notes: <a href="https://playwright.dev/docs/release-notes" target="_blank" rel="noopener">playwright.dev/docs/release-notes</a>.</p>
+
+    <div class="card note"><strong>How to read this:</strong> “GA” means documented stable API. <strong>Experimental</strong> means the surface can change between minors without a long deprecation — pin exact versions if you adopt it.</div>
+
+    <h3 class="sub">Agentic surface (highest interview signal in 2025–2026)</h3>
+    <table>
+      <tr><th>Feature</th><th>Since</th><th>What to know</th></tr>
+      <tr><td>Test Agents (planner / generator / healer)</td><td><strong>1.56</strong></td><td><code class="inline">npx playwright init-agents --loop=&lt;vscode|claude|codex|opencode&gt;</code>. Healer may <em>skip</em> if it believes the product is broken — that changes suite signal. See <a href="#agents-mcp">Agents &amp; MCP</a>.</td></tr>
+      <tr><td>Playwright MCP server</td><td><strong>1.62</strong> (bundled)</td><td><code class="inline">npx playwright mcp</code> — LLM clients drive the browser via <strong>accessibility snapshots</strong> (no vision model).</td></tr>
+      <tr><td><code class="inline">playwright-cli</code></td><td><strong>1.62</strong></td><td><code class="inline">npx playwright cli</code> — more token-efficient than MCP; needs filesystem access. Interview trade-off: MCP vs CLI.</td></tr>
+      <tr><td><code class="inline">browser.bind()</code></td><td><strong>1.60</strong></td><td>Share one browser across CLI, MCP, and the test runner.</td></tr>
+    </table>
+
+    <h3 class="sub">Core API additions</h3>
+    <table>
+      <tr><th>Feature</th><th>Since</th><th>Curriculum home</th></tr>
+      <tr><td><code class="inline">toMatchAriaSnapshot()</code></td><td><strong>1.49</strong> (Page in <strong>1.60</strong>)</td><td><a href="#visual">Visual &amp; a11y</a> — OS-independent structural asserts</td></tr>
+      <tr><td><code class="inline">page.clock</code></td><td><strong>1.45</strong> GA</td><td><a href="#clock">Clock API</a></td></tr>
+      <tr><td>WebAuthn / <code class="inline">browserContext.credentials</code></td><td><strong>1.61</strong> (+ storageState in <strong>1.62</strong>)</td><td><a href="#webauthn">WebAuthn / passkeys</a></td></tr>
+      <tr><td><code class="inline">page.localStorage</code> / <code class="inline">sessionStorage</code></td><td><strong>1.61</strong></td><td><a href="#auth">Auth &amp; storage</a></td></tr>
+      <tr><td><code class="inline">locator.drop()</code></td><td><strong>1.60</strong></td><td><a href="#actions">Actions</a></td></tr>
+      <tr><td>Component testing stories / <code class="inline">mount()</code></td><td><strong>1.62</strong></td><td><a href="#component-testing">Component testing</a> (experimental)</td></tr>
+      <tr><td><code class="inline">tracing.startHar()</code> / <code class="inline">test.abort()</code> / <code class="inline">retryStrategy: 'isolated'</code></td><td><strong>1.60–1.62</strong></td><td><a href="#debug">Debug</a> / <a href="#config">Config</a></td></tr>
+    </table>
+
+    <h3 class="sub">Tooling</h3>
+    <ul class="tight">
+      <li><strong>UI Mode</strong> (<code class="inline">--ui</code>): time-travel, watch, pick locator, filter by <code class="inline">@tag</code>; in-app search via Cmd/Ctrl+F since <strong>1.60</strong>.</li>
+      <li><strong>Trace Viewer</strong> / <code class="inline">npx playwright trace</code>: actions, filmstrip, network, console. <code class="inline">trace.playwright.dev</code> loads traces <em>entirely in-browser</em> — safe to share in a portfolio.</li>
+    </ul>
+  </section>
+
+  <!-- ---------------- DEPRECATED ---------------- -->
+  <section class="page hidden" id="deprecated">
+    <h2 class="sec">Deprecated &amp; discouraged</h2>
+    <p class="lead">Standing warnings board. Prefer the replacement in the right column. The official healer agent is instructed to avoid several of these — the tooling itself encodes the anti-patterns.</p>
+
+    <table>
+      <tr><th>Avoid</th><th>Use instead</th><th>Notes</th></tr>
+      <tr><td><code class="inline">page.waitForTimeout()</code> / hard sleeps</td><td>Web-first <code class="inline">expect(locator).…</code></td><td>Slow when fast; flaky when slow</td></tr>
+      <tr><td><code class="inline">waitForLoadState('networkidle')</code></td><td>Assert UI/network you control</td><td>Discouraged; healer told not to use it</td></tr>
+      <tr><td><code class="inline">page.accessibility</code></td><td><code class="inline">@axe-core/playwright</code> + ARIA snapshots</td><td><strong>REMOVED in 1.57</strong> after years deprecated</td></tr>
+      <tr><td><code class="inline">expect(await loc.isVisible()).toBe(true)</code></td><td><code class="inline">await expect(loc).toBeVisible()</code></td><td>One-shot checks do not retry</td></tr>
+      <tr><td>Manual retry/wait helper loops</td><td>Built-in actionability + expect timeout</td><td>—</td></tr>
+      <tr><td><code class="inline">page.route()</code> globs with <code class="inline">?</code> or <code class="inline">[]</code></td><td>RegExp patterns</td><td>Glob forms no longer supported</td></tr>
+      <tr><td>Override <code class="inline">Cookie</code> via <code class="inline">route.continue()</code></td><td><code class="inline">context.addCookies()</code></td><td>Cookie override ignored</td></tr>
+      <tr><td>Docker <code class="inline">:latest</code> / <code class="inline">:focal</code> / <code class="inline">:jammy</code></td><td>Pin a version tag</td><td>Floating tags no longer published</td></tr>
+      <tr><td><code class="inline">@playwright/experimental-ct-svelte</code></td><td>Other CT packages or Vitest Browser Mode</td><td><strong>Removed in 1.59</strong> with no long warning</td></tr>
+    </table>
+
+    <div class="card warn"><strong>Interview line:</strong> “I don’t wait for networkidle or sleep — I assert the user-visible end state, and I know <code class="inline">page.accessibility</code> is gone as of 1.57.”</div>
+  </section>
+
+  <!-- ---------------- AGENTS + MCP ---------------- -->
+  <section class="page hidden" id="agents-mcp">
+    <h2 class="sec">Test Agents, MCP &amp; CLI</h2>
+    <p class="lead"><strong>Emerging, high-velocity surface</strong> — treat as scaffolding with governance, not as a replacement for architecture judgment. Minimum versions: Agents <strong>1.56</strong>, bundled MCP/CLI <strong>1.62</strong>.</p>
+
+    <h3 class="sub">Planner → Generator → Healer</h3>
+    <ul class="tight">
+      <li><strong>Planner</strong> explores the app and writes a Markdown test plan.</li>
+      <li><strong>Generator</strong> turns that plan into Playwright tests.</li>
+      <li><strong>Healer</strong> re-runs failures and attempts repairs.</li>
+    </ul>
+    <pre data-lang="bash"><code>npx playwright init-agents --loop=vscode   # also: claude | codex | opencode
+# VS Code loop needs VS Code v1.105+</code></pre>
+
+    <div class="card bad"><h3 class="sub" style="margin-top:0">Governance — the senior signal</h3>
+      <ul class="tight">
+        <li>Healer output is <strong>“a passing test, or a skipped test if the healer believes functionality is broken.”</strong> A silent skip <em>changes the suite’s signal</em> — it is not “red automatically made green.”</li>
+        <li>Official healer guidance: never wait for <code class="inline">networkidle</code>; avoid discouraged APIs — same anti-patterns this curriculum teaches.</li>
+        <li>Review gates: humans approve locators, assertions, and skips. Track generation cost; re-run generated tests repeatedly (“flakiness often shows on run 3”).</li>
+        <li><strong>AI scaffolds; humans own architecture.</strong> That sentence is the interview answer.</li>
+      </ul>
+    </div>
+
+    <h3 class="sub">MCP vs CLI</h3>
+    <table>
+      <tr><th></th><th>MCP (<code class="inline">npx playwright mcp</code>)</th><th>CLI (<code class="inline">npx playwright cli</code>)</th></tr>
+      <tr><td>Interface</td><td>Tool calls for LLM clients</td><td>Filesystem + commands</td></tr>
+      <tr><td>Page understanding</td><td>Structured a11y snapshots (no vision required)</td><td>Same browser stack; different client shape</td></tr>
+      <tr><td>Tokens / cost</td><td>Higher tool chatter</td><td>Often more token-efficient</td></tr>
+      <tr><td>Access</td><td>Good for IDE/agent loops</td><td>Needs FS permissions where you run it</td></tr>
+    </table>
+    <pre data-lang="typescript"><code>// 1.60+ — share one browser across tooling
+await browser.bind();</code></pre>
+    <div class="card note">Link out for flags and loops: <a href="https://playwright.dev" target="_blank" rel="noopener">playwright.dev</a> — this surface moves monthly.</div>
+  </section>
+
+  <!-- ---------------- CLOCK ---------------- -->
+  <section class="page hidden" id="clock">
+    <h2 class="sec">Clock API — time without waiting</h2>
+    <p class="lead">Control timers and “now” so expiry, OTP windows, and scheduled UI can be asserted instantly. GA since <strong>1.45</strong> (<code class="inline">page.clock</code>).</p>
+
+    <pre data-lang="typescript"><code>test('offer expires after five minutes', async ({ page }) =&gt; {
+  await page.clock.install();
+  await page.goto('/promo');
+  await expect(page.getByText('50% off')).toBeVisible();
+
+  await page.clock.fastForward('05:01');
+  await expect(page.getByText('Offer expired')).toBeVisible();
+});
+
+// Also: setFixedTime / setSystemTime / runFor / pauseAt / resume
+await page.clock.setFixedTime(new Date('2026-01-15T09:00:00'));</code></pre>
+    <div class="card good"><strong>Teaching vehicle:</strong> Bank Demo OTP / session timeout (later expansion) — install clock → assert visible → <code class="inline">fastForward</code> → assert expired.</div>
+    <div class="card warn">Only mock time when the app uses timers/Date the browser can intercept. Real wall-clock server expiry still needs server cooperation or API stubs.</div>
+  </section>
+
+  <!-- ---------------- WEBAUTHN ---------------- -->
+  <section class="page hidden" id="webauthn">
+    <h2 class="sec">WebAuthn / passkeys</h2>
+    <p class="lead">Virtual authenticator so passwordless flows run in CI without a hardware key — all browsers. API: <code class="inline">browserContext.credentials</code> since <strong>1.61</strong>; persist into <code class="inline">storageState</code> in <strong>1.62</strong>.</p>
+
+    <pre data-lang="typescript"><code>test('passkey login', async ({ context, page }) =&gt; {
+  await context.credentials.add({
+    origin: 'https://example.com',
+    userName: 'demo@example.com',
+    userDisplayName: 'Demo User',
+    // … credential parameters per docs
+  });
+  await page.goto('/login');
+  await page.getByRole('button', { name: 'Sign in with passkey' }).click();
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+});</code></pre>
+    <p class="lead">Exact credential shapes: <a href="https://playwright.dev/docs/auth" target="_blank" rel="noopener">Auth docs</a> — link out rather than duplicating volatile options.</p>
+  </section>
+
+  <!-- ---------------- COMPONENT TESTING ---------------- -->
+  <section class="page hidden" id="component-testing">
+    <h2 class="sec">Component testing <span class="pill">experimental</span></h2>
+    <p class="lead"><strong>Say this plainly in interviews:</strong> Playwright component testing has been experimental since 2022. APIs can change between minors without long deprecation. In <strong>1.59</strong>, <code class="inline">@playwright/experimental-ct-svelte</code> was removed outright. Some teams prefer Vitest Browser Mode (stable from Vitest v4) for unit-in-browser work.</p>
+
+    <ul class="tight">
+      <li>Use CT only when correctness depends on <em>real browser rendering</em> of a design-system unit.</li>
+      <li>Pin <strong>exact</strong> package versions.</li>
+      <li><strong>1.62</strong> stories/galleries model: <code class="inline">mount()</code> navigates a gallery and mounts a story by id.</li>
+    </ul>
+    <div class="card warn">Do not mark CT as “stable” on a résumé or in this curriculum. Experimental means experimental.</div>
+  </section>
+
   <!-- ---------------- BEST ---------------- -->
   <section class="page hidden" id="best">
     <h2 class="sec">Best practices</h2>
@@ -2030,7 +2246,8 @@ CMD ["npx", "playwright", "test"]</code></pre>
           <li>Keep tests independent and self-seeding — any order, any worker.</li>
           <li>Use web-first assertions and let auto-waiting do the work.</li>
           <li>Seed state via API/DB, verify via UI.</li>
-          <li>Use fixtures + POM for reuse; keep specs declarative.</li>
+          <li>Default to fixtures for intents; add thin page objects where UI churns.</li>
+          <li>Know Agents/MCP as scaffolding with review gates — humans own skips &amp; asserts.</li>
           <li>Name tests by behaviour: "shows validation error when email is blank".</li>
           <li>Keep one logical flow per test; use <code class="inline">test.step</code> for readability.</li>
           <li>Run in CI on every PR with traces on retry.</li>
@@ -2061,15 +2278,18 @@ CMD ["npx", "playwright", "test"]</code></pre>
       <tr><td>Writing tests / assertions / auto-wait</td><td>First test, Assertions, Waiting</td><td>Core — start here</td></tr>
       <tr><td>Locators &amp; codegen</td><td>Locators, XPath, Cheat sheet</td><td>Prefer role/label/testid</td></tr>
       <tr><td>Best practices &amp; isolation</td><td>Best practices, Anti-patterns, Flake playbook</td><td>Habits &gt; APIs</td></tr>
-      <tr><td>Fixtures / POM / auth</td><td>Fixtures, POM, Auth</td><td>Scale patterns</td></tr>
+      <tr><td>Fixtures / POM / auth</td><td>Fixtures, POM ↔ fixtures, Auth</td><td>Trade-off + storageState</td></tr>
       <tr><td>Network / API / mocking</td><td>API, Network</td><td>Route before goto</td></tr>
       <tr><td>Frames / pages / dialogs</td><td>Frames + tabs deep dive</td><td>popup vs dialog</td></tr>
       <tr><td>Clipboard / keyboard</td><td>Clipboard &amp; copy/paste</td><td>Permissions matter</td></tr>
       <tr><td>Trace / UI Mode / debug</td><td>Debugging &amp; reports</td><td>CI: on-first-retry</td></tr>
-      <tr><td>CI / sharding / Docker</td><td>CI/CD, Sharding</td><td>Every PR</td></tr>
-      <tr><td>Clock (time mocking)</td><td><em>See docs</em></td><td><code>page.clock</code> for timers/dates — dig into official Clock guide when testing expiry/OTP countdowns</td></tr>
-      <tr><td>Component testing</td><td><em>See docs</em></td><td>@playwright/experimental-ct-* for design-system units</td></tr>
-      <tr><td>Agents / MCP / CLI for AI</td><td><em>See docs</em></td><td>Playwright MCP + CLI skills for agent workflows — evolving fast on playwright.dev</td></tr>
+      <tr><td>CI / sharding / Docker</td><td>CI/CD, Sharding</td><td>Pin Docker version tags</td></tr>
+      <tr><td>Clock (time mocking)</td><td><a href="#clock">Clock API</a></td><td><code>page.clock</code> for OTP/expiry</td></tr>
+      <tr><td>ARIA snapshots / a11y</td><td><a href="#visual">Visual &amp; a11y</a></td><td><code>toMatchAriaSnapshot</code>; axe-core</td></tr>
+      <tr><td>WebAuthn / passkeys</td><td><a href="#webauthn">WebAuthn</a></td><td><code>context.credentials</code> 1.61+</td></tr>
+      <tr><td>Component testing</td><td><a href="#component-testing">Component testing</a></td><td>Experimental — say so in interviews</td></tr>
+      <tr><td>Agents / MCP / CLI for AI</td><td><a href="#agents-mcp">Agents &amp; MCP</a></td><td>Governance &gt; codegen speed</td></tr>
+      <tr><td>What's new / deprecated</td><td><a href="#whats-new">What's new</a>, <a href="#deprecated">Deprecated</a></td><td>Currency board</td></tr>
       <tr><td>Chrome extensions / WebView2</td><td><em>See docs</em></td><td>Niche — only if your product needs them</td></tr>
     </table>
 
@@ -2121,8 +2341,10 @@ CMD ["npx", "playwright", "test"]</code></pre>
       <tr><td>Key press</td><td><code>press('Enter') · press('Control+A')</code></td></tr>
       <tr><td>Check / select</td><td><code>check() · selectOption('IN')</code></td></tr>
       <tr><td>Upload</td><td><code>setInputFiles('a.pdf')</code></td></tr>
-      <tr><td>Hover / drag</td><td><code>hover() · dragTo(target)</code></td></tr>
+      <tr><td>Hover / drag / drop</td><td><code>hover() · dragTo(target) · drop({ files | data })</code> (1.60+)</td></tr>
       <tr><td>Navigate</td><td><code>page.goto('/x') · reload() · goBack()</code></td></tr>
+      <tr><td>Clock</td><td><code>page.clock.install() · fastForward('05:00')</code></td></tr>
+      <tr><td>Storage helpers</td><td><code>page.localStorage.setItem(...) · sessionStorage.clear()</code> (1.61+)</td></tr>
     </table>
 
     <h3 class="sub">Assertions</h3>
@@ -2135,6 +2357,7 @@ CMD ["npx", "playwright", "test"]</code></pre>
       <tr><td>Attr / class / css</td><td><code>toHaveAttribute() · toHaveClass() · toHaveCSS()</code></td></tr>
       <tr><td>Page</td><td><code>expect(page).toHaveURL() / toHaveTitle()</code></td></tr>
       <tr><td>API</td><td><code>expect(res).toBeOK()</code></td></tr>
+      <tr><td>ARIA snapshot</td><td><code>expect(loc).toMatchAriaSnapshot(\`…\`)</code></td></tr>
       <tr><td>Soft</td><td><code>expect.soft(loc).toBeVisible()</code></td></tr>
       <tr><td>Poll / retry block</td><td><code>expect.poll(fn).toBe(x) · expect(fn).toPass()</code></td></tr>
     </table>
