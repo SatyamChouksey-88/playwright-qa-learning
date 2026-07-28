@@ -855,7 +855,7 @@ document.getElementById('resetStudyProgress')?.addEventListener('click', () => {
 document.getElementById('resetInterviewProgress')?.addEventListener('click', () => {
   practiced = new Set();
   saveSet(PRACTICE_KEY, practiced);
-  renderInterviewSection(() => { index = buildSearchIndex(); });
+  renderInterviewSection();
   updateInterviewProgress();
 });
 
@@ -1475,16 +1475,22 @@ function renderSectionMcqs() {
 
 renderSectionMcqs();
 
-/* ---------------- Search ---------------- */
-function buildSearchIndex() {
-  pages = Array.from(document.querySelectorAll('.page'));
-  return pages.map(p => {
-    const title = p.querySelector('h2.sec, .hero h1')?.textContent.trim() || p.id;
-    const link = links.find(l => l.dataset.target === p.id);
-    return { id: p.id, title, nav: link ? link.textContent.trim() : title, text: p.innerText };
-  });
+/* ---------------- Search (prebuilt MiniSearch — file:// safe) ---------------- */
+function loadMiniSearch() {
+  const payload = window.SEARCH_INDEX;
+  if (!payload?.index || typeof MiniSearch === 'undefined') return null;
+  try {
+    return MiniSearch.loadJS(payload.index, payload.options || {
+      fields: ['title', 'body', 'nav'],
+      storeFields: ['title', 'nav', 'target', 'kind'],
+    });
+  } catch (err) {
+    console.warn('SEARCH_INDEX failed to load', err);
+    return null;
+  }
 }
-let index = buildSearchIndex();
+
+const miniSearch = loadMiniSearch();
 
 renderStudyChecklist();
 renderPlayground();
@@ -1495,17 +1501,14 @@ renderMistakesSection();
 renderAllSkillsPractice();
 renderBankDemo();
 renderAssessments();
-renderInterviewSection(() => {
-  index = buildSearchIndex();
-});
+renderInterviewSection();
 initDrill();
-index = buildSearchIndex();
 
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 
 function runSearch(q) {
-  const query = q.trim().toLowerCase();
+  const query = q.trim();
   if (query.length < 2) {
     searchPanel.classList.add('hidden');
     const active = links.find(l => l.classList.contains('active'));
@@ -1515,32 +1518,36 @@ function runSearch(q) {
   pages.forEach(p => p.classList.add('hidden'));
   searchPanel.classList.remove('hidden');
 
-  const hits = [];
-  index.forEach(entry => {
-    const lower = entry.text.toLowerCase();
-    let pos = lower.indexOf(query);
-    let n = 0;
-    while (pos !== -1 && n < 3) {
-      const start = Math.max(0, pos - 70);
-      const snippet = entry.text.slice(start, pos + query.length + 90).replace(/\s+/g, ' ');
-      hits.push({ id: entry.id, nav: entry.nav, snippet, pos });
-      pos = lower.indexOf(query, pos + query.length);
-      n++;
-    }
-  });
+  const escHtml = s => String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 
-  if (!hits.length) {
-    searchResults.innerHTML = `<div class="card">No matches for <b>${q}</b>.</div>`;
+  if (!miniSearch) {
+    searchResults.innerHTML = `<div class="card">Search index unavailable. Open via <code class="inline">index.html</code> with <code class="inline">search-index.js</code> present, or run <code class="inline">npm run build:content</code>.</div>`;
     return;
   }
 
-  const escHtml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const hits = miniSearch.search(query, {
+    boost: { title: 4, nav: 2, body: 1 },
+    fuzzy: 0.15,
+    prefix: true,
+  });
+
+  if (!hits.length) {
+    searchResults.innerHTML = `<div class="card">No matches for <b>${escHtml(query)}</b>.</div>`;
+    return;
+  }
+
   const rx = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
-  searchResults.innerHTML = hits.slice(0, 40).map(h =>
-    `<div class="result" data-go="${h.id}">
-       <div class="rsec">${escHtml(h.nav)}</div>
-       <div>…${escHtml(h.snippet).replace(rx, '<span class="searchhit">$1</span>')}…</div>
-     </div>`).join('');
+  searchResults.innerHTML = hits.slice(0, 40).map(h => {
+    const title = escHtml(h.title || h.id).replace(rx, '<span class="searchhit">$1</span>');
+    const nav = escHtml(h.nav || h.kind || '');
+    return `<div class="result" data-go="${escHtml(h.target || 'home')}">
+       <div class="rsec">${nav}</div>
+       <div>${title}</div>
+     </div>`;
+  }).join('');
 
   searchResults.querySelectorAll('.result').forEach(r =>
     r.addEventListener('click', () => show(r.dataset.go)));
