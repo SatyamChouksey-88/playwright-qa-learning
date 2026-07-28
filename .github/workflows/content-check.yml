@@ -1,0 +1,29 @@
+name: Content check
+
+on:
+  push:
+    paths:
+      - 'interview-qa/**'
+      - 'learning-site/**'
+      - 'tools/content/**'
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    paths:
+      - 'interview-qa/**'
+      - 'learning-site/**'
+      - 'tools/content/**'
+      - 'package.json'
+      - 'package-lock.json'
+
+jobs:
+  check-content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run check:content

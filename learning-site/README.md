@@ -32,11 +32,22 @@ Deep links use the URL hash, e.g. `index.html#fixtures` or `index.html#whats-new
 
 ## Features
 
-- Full-text search — press `/`
+- Full-text search via **prebuilt MiniSearch** (`search-index.js` + `vendor/minisearch.js`) — press `/`; works on `file://` (no `fetch`)
 - Keyboard help — press `?`
 - Copy on code blocks
 - Dark / light theme (saved in `localStorage`)
 - Progress checklists (local only)
+
+## Author: regenerate search / interview data
+
+From the monorepo root (not required for readers):
+
+```bash
+npm install
+npm run build:content
+```
+
+See `docs/adr/0001-search-minisearch.md` and `docs/adr/0002-interview-md-ssot.md`.
 
 ## License
 
